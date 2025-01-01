@@ -1,6 +1,7 @@
 package com.hyuuny.ecommerce.core.api.v1.users
 
 import com.hyuuny.ecommerce.core.support.error.DuplicateEmailException
+import com.hyuuny.ecommerce.core.support.error.UserNotFoundException
 import com.hyuuny.ecommerce.storage.db.core.users.Role
 import com.hyuuny.ecommerce.storage.db.core.users.UserEntity
 import io.mockk.every
@@ -12,14 +13,16 @@ import org.junit.jupiter.api.assertThrows
 
 class UserServiceTest {
     private lateinit var writer: UserWriter
+    private lateinit var reader: UserReader
     private lateinit var validator: UserValidator
     private lateinit var service: UserService
 
     @BeforeEach
     fun setUp() {
         writer = mockk()
+        reader = mockk()
         validator = mockk()
-        service = UserService(writer, validator)
+        service = UserService(writer, reader, validator)
     }
 
     @Test
@@ -64,6 +67,36 @@ class UserServiceTest {
         }
         assertThat(exception.message).isEqualTo("duplicate email")
         assertThat(exception.data).isEqualTo("이미 존재하는 email입니다.")
+    }
+
+    @Test
+    fun `회원은 자신의 정보를 상세조회 할 수 있다`() {
+        val userEntity = UserEntity(
+            email = "newuser@naver.com",
+            password = "encodedPassword123",
+            name = "나가입",
+            phoneNumber = "01012345678",
+            roles = setOf(Role.CUSTOMER),
+        )
+        every { reader.read(any()) } returns userEntity
+
+        val userData = service.getUser(userEntity.id)
+
+        assertThat(userData.email).isEqualTo(userEntity.email)
+        assertThat(userData.name).isEqualTo(userEntity.name)
+        assertThat(userData.phoneNumber).isEqualTo(userEntity.phoneNumber)
+    }
+
+    @Test
+    fun `존재하지 않는 회원의 정보를 상세조회 할 수 없다`() {
+        val invalidId = 9L
+        every { reader.read(invalidId) } throws UserNotFoundException("회원을 찾을 수 없습니다. id: $invalidId")
+
+        val exception = assertThrows<UserNotFoundException> {
+            service.getUser(invalidId)
+        }
+        assertThat(exception.message).isEqualTo("user notFound")
+        assertThat(exception.data).isEqualTo("회원을 찾을 수 없습니다. id: $invalidId")
     }
 
 }

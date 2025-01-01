@@ -10,6 +10,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.stereotype.Component
+import java.time.Duration
 import java.util.*
 import javax.crypto.SecretKey
 
@@ -27,7 +28,8 @@ class JwtTokenProvider(
             "roles" to roles.map { it.name }
         )
         val now = Date()
-        val expiryDate = Date(now.time + accessTokenExpirationTime)
+        val accessTime = Duration.ofMinutes(accessTokenExpirationTime).toMillis()
+        val expiryDate = Date(now.time + accessTime)
 
         return Jwts.builder()
             .subject(email)

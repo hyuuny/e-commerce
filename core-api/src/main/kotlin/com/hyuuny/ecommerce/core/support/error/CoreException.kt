@@ -9,3 +9,7 @@ class DuplicateEmailException(
     data: Any? = null
 ) : CoreException(ErrorType.DUPLICATE_EMAIL_EXCEPTION, data)
 
+class UserNotFoundException(
+    data: Any? = null,
+) : CoreException(ErrorType.USER_NOT_FOUND_EXCEPTION, data)
+

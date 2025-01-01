@@ -20,7 +20,7 @@ abstract class BaseIntegrationTest {
         const val DEFAULT_USER_PASSWORD = "ab123345!"
     }
 
-    fun generateJwtToken(email: String, password: String): String = (Given {
+    fun generateJwtToken(email: String, password: String): String = "Bearer " + (Given {
         contentType(ContentType.JSON)
         body(AuthRequestDto(email, password))
         log().all()

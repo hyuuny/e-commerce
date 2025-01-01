@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional
 @Service
 class UserService(
     private val userWriter: UserWriter,
+    private val userReader: UserReader,
     private val validator: UserValidator,
 ) {
     @Transactional
@@ -14,5 +15,10 @@ class UserService(
         validator.validate(signupUser.email)
         val newUser = userWriter.signup(signupUser)
         return UserData(newUser)
+    }
+
+    fun getUser(id: Long): UserData {
+        val userEntity = userReader.read(id)
+        return UserData(userEntity)
     }
 }
