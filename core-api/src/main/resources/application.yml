@@ -1,0 +1,27 @@
+spring.application.name: core-api
+spring.profiles.active: local
+
+spring:
+  config:
+    import:
+      - db-core.yml
+  web.resources.add-mappings: false
+
+server:
+  tomcat:
+    max-connections: 20000
+    threads:
+      max: 600
+      min-spare: 100
+
+---
+spring.config.activate.on-profile: local
+server:
+  port: 8300
+
+jwt:
+  secret-key: a290bGluU3ByaW5nQm9vdFNlY3VyaXR5QmF0Y2hSZWRpc0h5dXVueUVjb21tZXJjZQ==
+  access-expiration-time : 3600
+
+---
+spring.config.activate.on-profile: dev
