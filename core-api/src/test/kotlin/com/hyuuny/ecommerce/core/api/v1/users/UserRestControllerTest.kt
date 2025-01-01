@@ -16,6 +16,7 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.boot.test.web.server.LocalServerPort
+import org.springframework.http.HttpHeaders
 
 class UserRestControllerTest(
     @LocalServerPort private val port: Int,
@@ -80,6 +81,48 @@ class UserRestControllerTest(
             body("error.code", equalTo(ErrorCode.E100.name))
             body("error.message", equalTo(ErrorType.DUPLICATE_EMAIL_EXCEPTION.message))
             body("error.data", equalTo("이미 존재하는 email입니다."))
+            log().all()
+        }
+    }
+
+    @Test
+    fun `회원은 자신의 정보를 상세조회 할 수 있다`() {
+        val user = userRepository.findByEmail(DEFAULT_USER_EMAIL)!!
+
+        Given {
+            contentType(ContentType.JSON)
+            header(HttpHeaders.AUTHORIZATION, generateJwtToken(DEFAULT_USER_EMAIL, DEFAULT_USER_PASSWORD))
+            log().all()
+        } When {
+            get("/api/v1/users/${user.id}")
+        } Then {
+            statusCode(HttpStatus.SC_OK)
+            body("result", equalTo(ResultType.SUCCESS.name))
+            body("data.id", notNullValue())
+            body("data.email", equalTo(user.email))
+            body("data.name", equalTo(user.name))
+            body("data.phoneNumber", equalTo(user.phoneNumber))
+            log().all()
+        }
+    }
+
+    @Test
+    fun `존재하지 않는 회원의 정보를 상세조회 할 수 없다`() {
+        val invalidId = 9L
+
+        Given {
+            contentType(ContentType.JSON)
+            header(HttpHeaders.AUTHORIZATION, generateJwtToken(DEFAULT_USER_EMAIL, DEFAULT_USER_PASSWORD))
+            log().all()
+        } When {
+            get("/api/v1/users/$invalidId")
+        } Then {
+            statusCode(HttpStatus.SC_NOT_FOUND)
+            body("result", equalTo("ERROR"))
+            body("data", equalTo(null))
+            body("error.code", equalTo(ErrorCode.E104.name))
+            body("error.message", equalTo(ErrorType.USER_NOT_FOUND_EXCEPTION.message))
+            body("error.data", equalTo("회원을 찾을 수 없습니다. id: $invalidId"))
             log().all()
         }
     }
