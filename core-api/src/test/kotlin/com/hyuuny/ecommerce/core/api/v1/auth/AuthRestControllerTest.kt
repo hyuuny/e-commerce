@@ -1,6 +1,8 @@
 package com.hyuuny.ecommerce.core.api.v1.auth
 
 import com.hyuuny.ecommerce.core.BaseIntegrationTest
+import com.hyuuny.ecommerce.core.support.error.ErrorCode
+import com.hyuuny.ecommerce.core.support.error.ErrorType
 import com.hyuuny.ecommerce.core.support.response.ResultType
 import com.hyuuny.ecommerce.storage.db.core.users.Role
 import io.restassured.RestAssured
@@ -48,6 +50,27 @@ class AuthRestControllerTest(
             body("data.email", equalTo(DEFAULT_USER_EMAIL))
             body("data.roles[0].role", equalTo(Role.CUSTOMER.name))
             body("data.token", notNullValue())
+            log().all()
+        }
+    }
+
+    @Test
+    fun `로그인에 실패하면 401 예외가 발생한다`() {
+        val request = AuthRequestDto(DEFAULT_USER_EMAIL, "wrongpassword")
+
+        Given {
+            contentType(ContentType.JSON)
+            body(request)
+            log().all()
+        } When {
+            post("/api/v1/auth")
+        } Then {
+            statusCode(HttpStatus.SC_UNAUTHORIZED)
+            body("result", equalTo("ERROR"))
+            body("data", equalTo(null))
+            body("error.code", equalTo(ErrorCode.E401.name))
+            body("error.message", equalTo(ErrorType.INVALID_AUTHENTICATION_EXCEPTION.message))
+            body("error.data", equalTo(null))
             log().all()
         }
     }
