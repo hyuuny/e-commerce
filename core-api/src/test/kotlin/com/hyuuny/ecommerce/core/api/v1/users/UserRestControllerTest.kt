@@ -1,6 +1,8 @@
 package com.hyuuny.ecommerce.core.api.v1.users
 
 import com.hyuuny.ecommerce.core.BaseIntegrationTest
+import com.hyuuny.ecommerce.core.support.error.ErrorCode
+import com.hyuuny.ecommerce.core.support.error.ErrorType
 import com.hyuuny.ecommerce.core.support.response.ResultType
 import io.restassured.RestAssured
 import io.restassured.http.ContentType
@@ -56,4 +58,29 @@ class UserRestControllerTest(
         }
     }
 
+    @Test
+    fun `이미 가입된 이메일은 회원가입을 할 수 없다`() {
+        val request = SignupRequestDto(
+            email = DEFAULT_USER_EMAIL,
+            password = "password123",
+            name = "나가입",
+            phoneNumber = "01012345678",
+        )
+
+        Given {
+            contentType(ContentType.JSON)
+            body(request)
+            log().all()
+        } When {
+            post("/api/v1/users")
+        } Then {
+            statusCode(HttpStatus.SC_BAD_REQUEST)
+            body("result", equalTo("ERROR"))
+            body("data", equalTo(null))
+            body("error.code", equalTo(ErrorCode.E100.name))
+            body("error.message", equalTo(ErrorType.DUPLICATE_EMAIL_EXCEPTION.message))
+            body("error.data", equalTo("이미 존재하는 email입니다."))
+            log().all()
+        }
+    }
 }
