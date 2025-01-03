@@ -28,6 +28,10 @@ class SecurityConfig(
                     "/api/v1/auth/**",
                     "/api/v1/users/**",
                 ).permitAll()
+                it.requestMatchers(
+                    HttpMethod.GET,
+                    "/api/v1/categories/**",
+                ).permitAll()
                 it.anyRequest().authenticated()
             }
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter::class.java)
