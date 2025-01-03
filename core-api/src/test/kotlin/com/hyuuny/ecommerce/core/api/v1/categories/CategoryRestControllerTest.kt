@@ -63,4 +63,36 @@ class CategoryRestControllerTest(
             log().all()
         }
     }
+
+    @Test
+    fun `상위 카테고리의 하위 카테고리 목록을 조회할 수 있다`() {
+        val parentCategory = CategoryEntity(null, "스킨케어", "categories/icons/skincare.png", false)
+        val children = listOf(
+            CategoryEntity(parentCategory, "스킨/토너"),
+            CategoryEntity(parentCategory, "에센스/세럼/앰플"),
+            CategoryEntity(parentCategory, "크림"),
+            CategoryEntity(parentCategory, "로션"),
+            CategoryEntity(parentCategory, "미스트/오일"),
+            CategoryEntity(parentCategory, "스킨케어세트"),
+        )
+        children.forEach { parentCategory.addChild(it) }
+        repository.save(parentCategory)
+
+        Given {
+            contentType(ContentType.JSON)
+            log().all()
+        } When {
+            get("/api/v1/categories/parents/${parentCategory.id}/children")
+        } Then {
+            statusCode(HttpStatus.SC_OK)
+            body("result", equalTo(ResultType.SUCCESS.name))
+            body("data[0].name", equalTo(children[0].name))
+            body("data[1].name", equalTo(children[1].name))
+            body("data[2].name", equalTo(children[2].name))
+            body("data[3].name", equalTo(children[3].name))
+            body("data[4].name", equalTo(children[4].name))
+            body("data[5].name", equalTo(children[5].name))
+            log().all()
+        }
+    }
 }
