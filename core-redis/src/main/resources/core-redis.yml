@@ -1,0 +1,30 @@
+spring.config.activate.on-profile: local
+
+spring:
+  cache:
+    redis:
+      time-to-live: 1
+  data:
+    redis:
+      host: localhost
+      port: 6379
+    redisson:
+      connection:
+        pool-size: 10
+        minimum-idle-size: 1
+
+---
+spring.config.activate.on-profile: dev
+
+spring:
+  cache:
+    redis:
+      time-to-live: 1
+  data:
+    redis:
+      host: dev-redis-host
+      port: 6379
+    redisson:
+      connection:
+        pool-size: 10
+        minimum-idle-size: 1
