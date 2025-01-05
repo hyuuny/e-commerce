@@ -7,6 +7,17 @@ spring:
         format_sql: true
         use_sql_comments: true
         show_sql: true
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+    redisson:
+      connection:
+        pool-size: 10
+        minimum-idle-size: 1
+  cache:
+    redis:
+      time-to-live: 1
 
 storage:
   datasource:
@@ -17,4 +28,4 @@ storage:
 
 jwt:
   secret-key: a290bGluU3ByaW5nQm9vdFNlY3VyaXR5QmF0Y2hSZWRpc0h5dXVueUVjb21tZXJjZQ==
-  access-expiration-time : 600
+  access-expiration-time: 600

@@ -1,6 +1,7 @@
 package com.hyuuny.ecommerce.core.api.v1.categories
 
 import com.hyuuny.ecommerce.core.BaseIntegrationTest
+import com.hyuuny.ecommerce.core.TestContainer
 import com.hyuuny.ecommerce.core.support.response.ResultType
 import com.hyuuny.ecommerce.storage.db.core.categories.CategoryEntity
 import com.hyuuny.ecommerce.storage.db.core.categories.CategoryRepository
@@ -16,9 +17,11 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.boot.test.web.server.LocalServerPort
 
+@TestContainer
 class CategoryRestControllerTest(
     @LocalServerPort val port: Int,
     private val repository: CategoryRepository,
+    private val service: CategoryService,
 ) : BaseIntegrationTest() {
 
     @BeforeEach
@@ -30,6 +33,7 @@ class CategoryRestControllerTest(
     fun tearDown() {
         RestAssured.reset()
         repository.deleteAll()
+        service.cacheEvict()
     }
 
     @Test
