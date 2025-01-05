@@ -2,6 +2,8 @@ package com.hyuuny.ecommerce.core.api.v1.categories
 
 import com.hyuuny.ecommerce.core.BaseIntegrationTest
 import com.hyuuny.ecommerce.core.TestContainer
+import com.hyuuny.ecommerce.core.support.error.ErrorCode
+import com.hyuuny.ecommerce.core.support.error.ErrorType
 import com.hyuuny.ecommerce.core.support.response.ResultType
 import com.hyuuny.ecommerce.storage.db.core.categories.CategoryEntity
 import com.hyuuny.ecommerce.storage.db.core.categories.CategoryRepository
@@ -96,6 +98,26 @@ class CategoryRestControllerTest(
             body("data[3].name", equalTo(children[3].name))
             body("data[4].name", equalTo(children[4].name))
             body("data[5].name", equalTo(children[5].name))
+            log().all()
+        }
+    }
+
+    @Test
+    fun `존재하지 않는 카테고리로 하위 카테고리를 조회할 수 없다 `() {
+        val invalidId = 9L
+
+        Given {
+            contentType(ContentType.JSON)
+            log().all()
+        } When {
+            get("/api/v1/categories/parents/$invalidId/children")
+        } Then {
+            statusCode(HttpStatus.SC_NOT_FOUND)
+            body("result", equalTo(ResultType.ERROR.name))
+            body("data", equalTo(null))
+            body("error.code", equalTo(ErrorCode.E104.name))
+            body("error.message", equalTo(ErrorType.CATEGORY_NOT_FOUND_EXCEPTION.message))
+            body("error.data", equalTo("카테고리를 찾을 수 없습니다. id: $invalidId"))
             log().all()
         }
     }

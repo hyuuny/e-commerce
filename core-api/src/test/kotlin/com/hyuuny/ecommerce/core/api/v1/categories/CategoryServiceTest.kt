@@ -1,11 +1,13 @@
 package com.hyuuny.ecommerce.core.api.v1.categories
 
+import com.hyuuny.ecommerce.core.support.error.CategoryNotFoundException
 import com.hyuuny.ecommerce.storage.db.core.categories.CategoryEntity
 import io.mockk.every
 import io.mockk.mockk
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 
 class CategoryServiceTest {
     private lateinit var reader: CategoryReader
@@ -52,6 +54,7 @@ class CategoryServiceTest {
             CategoryEntity(parentCategory, "미스트/오일"),
             CategoryEntity(parentCategory, "스킨케어세트"),
         )
+        every { reader.read(any()) } returns parentCategory
         every { reader.readAllChildrenCategory(any()) } returns children
 
         val childrenCategories = service.getAllChildrenCategory(parentCategory.id)
@@ -62,5 +65,18 @@ class CategoryServiceTest {
             assertThat(category.name).isEqualTo(children[index].name)
             assertThat(category.hide).isEqualTo(children[index].hide)
         }
+    }
+
+    @Test
+    fun `존재하지 않는 카테고리로 하위 카테고리를 조회할 수 없다 `() {
+        val invalidId = 9L
+        every { reader.read(any()) } throws CategoryNotFoundException("카테고리를 찾을 수 없습니다. id: $invalidId")
+
+        val exception = assertThrows<CategoryNotFoundException> {
+            service.getAllChildrenCategory(invalidId)
+        }
+
+        assertThat(exception.message).isEqualTo("category notFound")
+        assertThat(exception.data).isEqualTo("카테고리를 찾을 수 없습니다. id: $invalidId")
     }
 }
