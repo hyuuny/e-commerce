@@ -9,4 +9,4 @@ import org.springframework.test.context.TestConstructor
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
 @ActiveProfiles("test")
-annotation class IntegrationTestEnvironment
+annotation class TestEnvironment

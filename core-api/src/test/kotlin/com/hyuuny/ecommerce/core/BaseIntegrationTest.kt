@@ -9,7 +9,7 @@ import io.restassured.module.kotlin.extensions.When
 import org.apache.http.HttpStatus
 import org.springframework.beans.factory.annotation.Autowired
 
-@IntegrationTestEnvironment
+@TestEnvironment
 abstract class BaseIntegrationTest {
 
     @Autowired
