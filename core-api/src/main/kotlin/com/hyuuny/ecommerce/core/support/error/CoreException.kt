@@ -13,3 +13,7 @@ class UserNotFoundException(
     data: Any? = null,
 ) : CoreException(ErrorType.USER_NOT_FOUND_EXCEPTION, data)
 
+class CategoryNotFoundException(
+    data: Any? = null,
+) : CoreException(ErrorType.CATEGORY_NOT_FOUND_EXCEPTION, data)
+

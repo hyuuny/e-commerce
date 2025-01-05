@@ -14,9 +14,11 @@ class CategoryService(
             .map { ParentCategoryData(it) }
 
     @Cacheable(value = ["childrenCategories"], key = "#parentId", unless = "#result.isEmpty()")
-    fun getAllChildrenCategory(parentId: Long): List<ChildCategoryData> =
-        categoryReader.readAllChildrenCategory(parentId).filterNot { it.hide }
+    fun getAllChildrenCategory(parentId: Long): List<ChildCategoryData> {
+        val parentCategory = categoryReader.read(parentId)
+        return categoryReader.readAllChildrenCategory(parentCategory.id).filterNot { it.hide }
             .map { ChildCategoryData(it) }
+    }
 
     @CacheEvict(value = ["parentCategories", "childrenCategories"], allEntries = true)
     fun cacheEvict() {

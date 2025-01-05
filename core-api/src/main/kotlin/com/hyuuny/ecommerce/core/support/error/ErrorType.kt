@@ -7,6 +7,7 @@ enum class ErrorType(val status: HttpStatus, val code: ErrorCode, val message: S
     INVALID_AUTHENTICATION_EXCEPTION(HttpStatus.UNAUTHORIZED, ErrorCode.E401, "invalid authentication", LogLevel.ERROR),
     DUPLICATE_EMAIL_EXCEPTION(HttpStatus.BAD_REQUEST, ErrorCode.E100, "duplicate email", LogLevel.ERROR),
     USER_NOT_FOUND_EXCEPTION(HttpStatus.NOT_FOUND, ErrorCode.E104, "user notFound", LogLevel.ERROR),
+    CATEGORY_NOT_FOUND_EXCEPTION(HttpStatus.NOT_FOUND, ErrorCode.E104, "category notFound", LogLevel.ERROR),
     DEFAULT_ERROR(
         HttpStatus.INTERNAL_SERVER_ERROR,
         ErrorCode.E500,
