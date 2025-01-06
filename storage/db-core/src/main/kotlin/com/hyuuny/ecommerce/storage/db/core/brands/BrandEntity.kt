@@ -9,5 +9,5 @@ import jakarta.persistence.Table
 class BrandEntity(
     val nameKo: String,
     val nameEn: String,
-    val imageUrl: String,
+    val bannerImageUrl: String,
 ) : BaseEntity()
