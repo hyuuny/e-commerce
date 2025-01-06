@@ -1,5 +1,6 @@
 package com.hyuuny.ecommerce.core.api.v1.brands
 
+import com.hyuuny.ecommerce.core.support.error.BrandNotFoundException
 import com.hyuuny.ecommerce.storage.db.core.brands.BrandEntity
 import com.hyuuny.ecommerce.storage.db.core.response.SimplePage
 import io.mockk.every
@@ -73,5 +74,18 @@ class BrandServiceTest {
         assertThat(brandDetailData.nameKo).isEqualTo(brandEntity.nameKo)
         assertThat(brandDetailData.nameEn).isEqualTo(brandEntity.nameEn)
         assertThat(brandDetailData.bannerImageUrl).isEqualTo(brandEntity.bannerImageUrl)
+    }
+
+    @Test
+    fun `존재하지 않는 카테고리를 상세조회 할 수 없다`() {
+        val invalidId = 9L
+        every { reader.read(any()) } throws BrandNotFoundException("브랜드를 찾을 수 없습니다. id: $invalidId")
+
+        val exception = org.junit.jupiter.api.assertThrows<BrandNotFoundException> {
+            service.getBrand(invalidId)
+        }
+
+        assertThat(exception.message).isEqualTo("brand notFound")
+        assertThat(exception.data).isEqualTo("브랜드를 찾을 수 없습니다. id: $invalidId")
     }
 }
