@@ -62,4 +62,16 @@ class BrandServiceTest {
             assertThat(item.nameEn).isEqualTo(brands[index].nameEn)
         }
     }
+
+    @Test
+    fun `브랜드를 상세조회 할 수 있다`() {
+        val brandEntity = BrandEntity("메디힐", "mediheal", "brands/images/mediheal.png")
+        every { reader.read(any()) } returns brandEntity
+
+        val brandDetailData = service.getBrand(brandEntity.id)
+
+        assertThat(brandDetailData.nameKo).isEqualTo(brandEntity.nameKo)
+        assertThat(brandDetailData.nameEn).isEqualTo(brandEntity.nameEn)
+        assertThat(brandDetailData.bannerImageUrl).isEqualTo(brandEntity.bannerImageUrl)
+    }
 }
