@@ -17,3 +17,6 @@ class CategoryNotFoundException(
     data: Any? = null,
 ) : CoreException(ErrorType.CATEGORY_NOT_FOUND_EXCEPTION, data)
 
+class BrandNotFoundException(
+    data: Any? = null,
+) : CoreException(ErrorType.BRAND_NOT_FOUND_EXCEPTION, data)
