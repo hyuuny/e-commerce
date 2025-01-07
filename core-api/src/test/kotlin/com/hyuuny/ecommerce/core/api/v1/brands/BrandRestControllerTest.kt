@@ -2,6 +2,8 @@ package com.hyuuny.ecommerce.core.api.v1.brands
 
 import com.hyuuny.ecommerce.core.BaseIntegrationTest
 import com.hyuuny.ecommerce.core.TestContainer
+import com.hyuuny.ecommerce.core.support.error.ErrorCode
+import com.hyuuny.ecommerce.core.support.error.ErrorType
 import com.hyuuny.ecommerce.core.support.response.ResultType
 import com.hyuuny.ecommerce.storage.db.core.brands.BrandEntity
 import com.hyuuny.ecommerce.storage.db.core.brands.BrandRepository
@@ -100,6 +102,24 @@ class BrandRestControllerTest(
             body("data.nameKo", equalTo(savedBrand.nameKo))
             body("data.nameEn", equalTo(savedBrand.nameEn))
             body("data.bannerImageUrl", equalTo(savedBrand.bannerImageUrl))
+            log().all()
+        }
+    }
+
+    @Test
+    fun `존재하지 않는 카테고리를 상세조회 할 수 없다`() {
+        Given {
+            contentType(ContentType.JSON)
+            log().all()
+        } When {
+            get("/api/v1/brands/$INVALID_ID")
+        } Then {
+            statusCode(HttpStatus.SC_NOT_FOUND)
+            body("result", equalTo("ERROR"))
+            body("data", equalTo(null))
+            body("error.code", equalTo(ErrorCode.E104.name))
+            body("error.message", equalTo(ErrorType.BRAND_NOT_FOUND_EXCEPTION.message))
+            body("error.data", equalTo("브랜드를 찾을 수 없습니다. id: $INVALID_ID"))
             log().all()
         }
     }
