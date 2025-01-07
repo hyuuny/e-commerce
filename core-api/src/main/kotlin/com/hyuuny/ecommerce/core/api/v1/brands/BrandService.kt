@@ -13,10 +13,10 @@ class BrandService(
 ) {
     @Cacheable(
         value = ["brandsSearch"],
-        key = "#searchCommand.toSearch().nameKo + '-' + #searchCommand.toSearch().nameEn + '-' + #pageable.pageNumber + '-' + #pageable.pageSize"
+        key = "#command.nameKo + '-' + #command.nameEn + '-' + #pageable.pageNumber + '-' + #pageable.pageSize + '-' + #pageable.sort"
     )
-    fun search(searchCommand: BrandSearchCommand, pageable: Pageable): SimplePage<BrandData> {
-        val page = brandReader.findAllBySearch(searchCommand, pageable)
+    fun search(command: BrandSearchCommand, pageable: Pageable): SimplePage<BrandData> {
+        val page = brandReader.search(command, pageable)
         val brandData = page.content.map { BrandData(it) }
         return SimplePage(brandData, page)
     }

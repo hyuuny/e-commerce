@@ -15,6 +15,6 @@ class BrandReader(
     fun read(id: Long): BrandEntity = repository.findByIdOrNull(id)
         ?: throw BrandNotFoundException("브랜드를 찾을 수 없습니다. id: $id")
 
-    fun findAllBySearch(searchCommand: BrandSearchCommand, pageable: Pageable): SimplePage<BrandEntity> =
-        repository.findAllBySearch(searchCommand.toSearch(), pageable)
+    fun search(command: BrandSearchCommand, pageable: Pageable): SimplePage<BrandEntity> =
+        repository.findAllBySearch(command.toSearch(), pageable)
 }

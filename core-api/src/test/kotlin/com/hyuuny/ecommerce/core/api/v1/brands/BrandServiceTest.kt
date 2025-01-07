@@ -36,7 +36,7 @@ class BrandServiceTest {
             BrandEntity("바이오더마", "BIODERMA", "brands/images/BIODERMA.png"),
         )
         val page = SimplePage(brands, 1, 10, true)
-        every { reader.findAllBySearch(any(), any()) } returns page
+        every { reader.search(any(), any()) } returns page
 
         val search = service.search(BrandSearchCommand(), PageRequest.of(0, 10))
 
@@ -53,7 +53,7 @@ class BrandServiceTest {
             BrandEntity("닥터지", "Dr.G", "brands/images/Dr.G.png"),
         )
         val page = SimplePage(brands, 1, 10, true)
-        every { reader.findAllBySearch(any(), any()) } returns page
+        every { reader.search(any(), any()) } returns page
 
         val search = service.search(BrandSearchCommand("닥터"), PageRequest.of(0, 10))
 
