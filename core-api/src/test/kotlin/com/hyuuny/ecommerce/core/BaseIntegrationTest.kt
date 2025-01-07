@@ -18,6 +18,7 @@ abstract class BaseIntegrationTest {
     companion object {
         const val DEFAULT_USER_EMAIL = "firstuser@naver.com"
         const val DEFAULT_USER_PASSWORD = "ab123345!"
+        const val INVALID_ID = 99999999L
     }
 
     fun generateJwtToken(email: String, password: String): String = "Bearer " + (Given {
