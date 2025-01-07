@@ -82,4 +82,25 @@ class BrandRestControllerTest(
             log().all()
         }
     }
+
+    @Test
+    fun `브랜드를 상세조회 할 수 있다`() {
+        val brandEntity = BrandEntity("메디힐", "mediheal", "brands/images/mediheal.png")
+        val savedBrand = repository.save(brandEntity)
+
+        Given {
+            contentType(ContentType.JSON)
+            log().all()
+        } When {
+            get("/api/v1/brands/${savedBrand.id}")
+        } Then {
+            statusCode(HttpStatus.SC_OK)
+            body("result", equalTo(ResultType.SUCCESS.name))
+            body("data.id", equalTo(savedBrand.id.toInt()))
+            body("data.nameKo", equalTo(savedBrand.nameKo))
+            body("data.nameEn", equalTo(savedBrand.nameEn))
+            body("data.bannerImageUrl", equalTo(savedBrand.bannerImageUrl))
+            log().all()
+        }
+    }
 }
