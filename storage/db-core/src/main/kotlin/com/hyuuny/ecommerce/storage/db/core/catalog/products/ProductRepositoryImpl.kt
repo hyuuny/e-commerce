@@ -18,7 +18,7 @@ class ProductRepositoryImpl : ProductRepositoryCustom, QuerydslRepositorySupport
                     .where(categoryProductEntity.categoryId.eq(it))
             }
             brandId?.let { query = query.where(productEntity.brandId.eq(it)) }
-            name?.let { query = query.where(productEntity.name.containsIgnoreCase(it)) }
+            name?.let { query = query.where(productEntity.name.contains(it)) }
         }
         query.orderBy(*QueryDslUtil.getSort(pageable, productEntity))
 
