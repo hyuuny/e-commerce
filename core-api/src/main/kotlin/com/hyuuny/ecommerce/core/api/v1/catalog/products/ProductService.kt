@@ -30,6 +30,16 @@ class ProductService(
         }, page)
     }
 
+    @Cacheable(value = ["getProduct"], key = "#id")
+    fun getProduct(id: Long): ProductView {
+        val product = productReader.read(id)
+        val brand = brandReader.read(product.brandId)
+        val productBanners = productBannerReader.readAll(product.id)
+        val productContents = productContentReader.readAll(product.id)
+        val productBadges = productBadgeReader.readAll(product.id)
+        return ProductView(brand, product, productBanners, productContents, productBadges)
+    }
+
     @CacheEvict(value = ["productsSearch", "getProduct"], allEntries = true)
     fun cacheEvict() {
     }

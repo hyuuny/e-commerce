@@ -10,4 +10,5 @@ enum class ErrorType(val status: HttpStatus, val code: ErrorCode, val message: S
     USER_NOT_FOUND_EXCEPTION(HttpStatus.NOT_FOUND, ErrorCode.E104, "user notFound", LogLevel.ERROR),
     CATEGORY_NOT_FOUND_EXCEPTION(HttpStatus.NOT_FOUND, ErrorCode.E104, "category notFound", LogLevel.ERROR),
     BRAND_NOT_FOUND_EXCEPTION(HttpStatus.NOT_FOUND, ErrorCode.E104, "brand notFound", LogLevel.ERROR),
+    PRODUCT__NOT_FOUND_EXCEPTION(HttpStatus.NOT_FOUND, ErrorCode.E104, "product notFound", LogLevel.ERROR),
 }

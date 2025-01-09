@@ -30,6 +30,40 @@ data class ProductResponseDto(
     )
 }
 
+data class ProductViewResponseDto(
+    val id: Long,
+    val brandId: Long,
+    val brandName: String,
+    val status: ProductStatus,
+    val name: String,
+    val thumbnailUrl: String,
+    val price: Long,
+    val discountPrice: Long,
+    val discountPercent: Int,
+    val totalPrice: Long,
+    val stockQuantity: Long,
+    val banners: List<ProductBannerResponseDto>,
+    val contents: List<ProductContentResponseDto>,
+    val badges: List<ProductBadgeResponseDto>,
+) {
+    constructor(productView: ProductView) : this(
+        id = productView.id,
+        brandId = productView.brandId,
+        brandName = productView.brandName,
+        status = productView.status,
+        name = productView.name,
+        thumbnailUrl = productView.thumbnailUrl,
+        price = productView.price.amount,
+        discountPrice = productView.discountPrice.discountAmount,
+        discountPercent = productView.discountPercent,
+        totalPrice = productView.totalPrice,
+        stockQuantity = productView.stockQuantity.quantity,
+        banners = productView.banners.map { ProductBannerResponseDto(it) },
+        contents = productView.contents.map { ProductContentResponseDto(it) },
+        badges = productView.badges.map { ProductBadgeResponseDto(it) },
+    )
+}
+
 data class ProductBannerResponseDto(
     val productId: Long,
     val imageUrl: String,
@@ -63,3 +97,4 @@ data class ProductBadgeResponseDto(
         bgColor = productBadgeData.bgColor,
     )
 }
+
