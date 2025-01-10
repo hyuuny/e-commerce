@@ -20,3 +20,7 @@ class CategoryNotFoundException(
 class BrandNotFoundException(
     data: Any? = null,
 ) : CoreException(ErrorType.BRAND_NOT_FOUND_EXCEPTION, data)
+
+class ProductNotFoundException(
+    data: Any? = null,
+) : CoreException(ErrorType.PRODUCT__NOT_FOUND_EXCEPTION, data)

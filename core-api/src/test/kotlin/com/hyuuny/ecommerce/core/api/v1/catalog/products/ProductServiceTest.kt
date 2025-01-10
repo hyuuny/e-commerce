@@ -1,6 +1,8 @@
 package com.hyuuny.ecommerce.core.api.v1.catalog.products
 
 import com.hyuuny.ecommerce.core.api.v1.brands.BrandReader
+import com.hyuuny.ecommerce.core.support.error.ProductNotFoundException
+import com.hyuuny.ecommerce.storage.db.core.brands.BrandEntity
 import com.hyuuny.ecommerce.storage.db.core.catalog.products.*
 import com.hyuuny.ecommerce.storage.db.core.catalog.products.ProductStatus.*
 import com.hyuuny.ecommerce.storage.db.core.response.SimplePage
@@ -9,6 +11,7 @@ import io.mockk.mockk
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.springframework.data.domain.PageRequest
 
 class ProductServiceTest {
@@ -97,5 +100,82 @@ class ProductServiceTest {
             assertThat(item.name).isEqualTo(productEntities[index].name)
         }
         assertThat(search.content.first().badges).hasSize(3)
+    }
+
+    @Test
+    fun `상품을 상세조회 할 수 있다`() {
+        val brandEntity = BrandEntity("메디힐", "mediheal", "brands/images/mediheal.png")
+        val productEntity = ProductEntity(
+            brandId = brandEntity.id,
+            name = "[1월올영픽/대용량200ml] 웰라쥬 리얼 히알루로닉 블루 100 앰플 100ml 리필 기획 (+마스크1매)",
+            thumbnailUrl = "products/thumbnail/wellage.png",
+            price = Price(33000),
+            discountPrice = DiscountPrice(6600),
+            stockQuantity = StockQuantity(1_000)
+        )
+        val bannerEntities = listOf(
+            ProductBannerEntity(1, productEntity.id, "banner1.png"),
+            ProductBannerEntity(2, productEntity.id, "banner2.png"),
+            ProductBannerEntity(3, productEntity.id, "banner3.png"),
+            ProductBannerEntity(4, productEntity.id, "banner4.png"),
+        )
+        val contentEntities = listOf(
+            ProductContentEntity(1, productEntity.id, "content1.png"),
+            ProductContentEntity(2, productEntity.id, "content2.png"),
+            ProductContentEntity(3, productEntity.id, "content3.png"),
+            ProductContentEntity(4, productEntity.id, "content4.png"),
+            ProductContentEntity(5, productEntity.id, "content5.png"),
+            ProductContentEntity(6, productEntity.id, "content6.png"),
+            ProductContentEntity(7, productEntity.id, "content7.png"),
+            ProductContentEntity(8, productEntity.id, "content8.png"),
+            ProductContentEntity(9, productEntity.id, "content9.png"),
+            ProductContentEntity(10, productEntity.id, "content10.png"),
+        )
+        val badgeEntities = listOf(
+            ProductBadgeEntity(1, productEntity.id, "오늘드림", "#FFC0CB", "#DCDCDC"),
+            ProductBadgeEntity(2, productEntity.id, "BEST", "#565656", "#DCDCDC"),
+        )
+        every { reader.read(any()) } returns productEntity
+        every { brandReader.read(any()) } returns brandEntity
+        every { productBannerReader.readAll(any()) } returns bannerEntities
+        every { productContentReader.readAll(any()) } returns contentEntities
+        every { productBadgesReader.readAll(any()) } returns badgeEntities
+
+        val product = service.getProduct(productEntity.id)
+
+        assertThat(product.brandId).isEqualTo(brandEntity.id)
+        assertThat(product.status).isEqualTo(productEntity.status)
+        assertThat(product.name).isEqualTo(productEntity.name)
+        assertThat(product.thumbnailUrl).isEqualTo(productEntity.thumbnailUrl)
+        assertThat(product.price).isEqualTo(productEntity.price)
+        assertThat(product.discountPrice).isEqualTo(productEntity.discountPrice)
+        assertThat(product.stockQuantity).isEqualTo(productEntity.stockQuantity)
+        product.banners.forEachIndexed { index, banner ->
+            assertThat(banner.productId).isEqualTo(bannerEntities[index].productId)
+            assertThat(banner.imageUrl).isEqualTo(bannerEntities[index].imageUrl)
+        }
+        product.contents.forEachIndexed { index, content ->
+            assertThat(content.productId).isEqualTo(contentEntities[index].productId)
+            assertThat(content.imageUrl).isEqualTo(contentEntities[index].imageUrl)
+        }
+        product.badges.forEachIndexed { index, badge ->
+            assertThat(badge.productId).isEqualTo(badgeEntities[index].productId)
+            assertThat(badge.title).isEqualTo(badgeEntities[index].title)
+            assertThat(badge.color).isEqualTo(badgeEntities[index].color)
+            assertThat(badge.bgColor).isEqualTo(badgeEntities[index].bgColor)
+        }
+    }
+
+    @Test
+    fun `존재하지 않는 상품을 상세조회 할 수 없다`() {
+        val invalidId = 9L
+        every { reader.read(any()) } throws ProductNotFoundException("상품을 찾을 수 없습니다 id: $invalidId")
+
+        val exception = assertThrows<ProductNotFoundException> {
+            service.getProduct(invalidId)
+        }
+
+        assertThat(exception.message).isEqualTo("product notFound")
+        assertThat(exception.data).isEqualTo("상품을 찾을 수 없습니다 id: $invalidId")
     }
 }
