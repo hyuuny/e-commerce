@@ -63,6 +63,7 @@ data class ProductBadgeData(
         color = productBadgeEntity.color,
         bgColor = productBadgeEntity.bgColor,
     )
+
 }
 
 data class ProductView(
