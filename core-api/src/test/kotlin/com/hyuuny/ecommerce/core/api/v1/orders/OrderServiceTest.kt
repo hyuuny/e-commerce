@@ -2,6 +2,7 @@ package com.hyuuny.ecommerce.core.api.v1.orders
 
 import com.hyuuny.ecommerce.core.api.v1.catalog.products.ProductReader
 import com.hyuuny.ecommerce.core.support.error.CheckoutTimeoutException
+import com.hyuuny.ecommerce.core.support.error.InsufficientStockException
 import com.hyuuny.ecommerce.storage.db.core.catalog.products.ProductEntity
 import com.hyuuny.ecommerce.storage.db.core.catalog.products.ProductStatus.ON_SALE
 import com.hyuuny.ecommerce.storage.db.core.catalog.products.StockQuantity
@@ -110,6 +111,65 @@ class OrderServiceTest {
 
         assertThat(exception.message).isEqualTo("checkout timeout")
         assertThat(exception.data).isEqualTo("제품에 대한 잠금을 획득할 수 없습니다. name: $tryLockTime:0")
+    }
+
+    @Test
+    fun `주문시 제품의 재고가 부족하면 주문에 실패한다`() {
+        val productEntity = ProductEntity(
+            1,
+            ON_SALE,
+            "product-1",
+            "thumbnail-1.png",
+            com.hyuuny.ecommerce.storage.db.core.catalog.products.Price(20000),
+            com.hyuuny.ecommerce.storage.db.core.catalog.products.DiscountPrice(1000),
+            StockQuantity(100)
+        )
+        val checkoutItem = listOf(
+            CheckoutItem(
+                productId = productEntity.id,
+                quantity = 150,
+                discountPrice = productEntity.discountPrice.discountAmount * 150,
+                price = productEntity.price.amount * 150,
+                totalPrice = productEntity.calculateTotalPrice(),
+            )
+        )
+        val command = Checkout(
+            userId = 1,
+            orderer = OrdererCommand(
+                name = "김성현",
+                phoneNumber = "01012341234"
+            ),
+            deliveryDetail = DeliveryDetailCommand(
+                address = "서울시 구로구 123",
+                addressDetail = "3동 503호",
+                recipientName = "김성현",
+                message = "문앞 보관해주세요!"
+            ),
+            totalProductPrice = checkoutItem[0].price,
+            totalDiscountAmount = checkoutItem[0].discountPrice,
+            shippingFee = 3000,
+            totalPrice = checkoutItem[0].totalPrice,
+            items = checkoutItem
+        )
+        val orderEntity = generateOrderEntity(command)
+
+        val locks = listOf(mockk<RLock>(), mockk<RLock>())
+        every { redissonClient.getLock(ofType<String>()) } answers { locks[0] } andThenAnswer { locks[1] }
+        every { locks[0].tryLock(tryLockTime, TimeUnit.SECONDS) } returns true
+        every { locks[1].tryLock(tryLockTime, TimeUnit.SECONDS) } returns true
+        every { productReader.readAllByIds(any()) } returns listOf(productEntity)
+        every { writer.checkout(any()) } returns orderEntity
+        every { orderItemWriter.append(any(), any(), any()) } throws
+                InsufficientStockException("상품 재고가 부족합니다. id: ${productEntity.id}")
+        every { locks[0].unlock() } just Runs
+        every { locks[1].unlock() } just Runs
+
+        val exception = org.junit.jupiter.api.assertThrows<InsufficientStockException> {
+            service.checkout(command)
+        }
+
+        assertThat(exception.message).isEqualTo("insufficient stock")
+        assertThat(exception.data).isEqualTo("상품 재고가 부족합니다. id: ${productEntity.id}")
     }
 
     private fun generateOrderEntity(command: Checkout) = OrderEntity(
