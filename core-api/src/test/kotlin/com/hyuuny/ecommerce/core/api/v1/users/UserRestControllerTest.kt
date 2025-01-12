@@ -78,7 +78,7 @@ class UserRestControllerTest(
             statusCode(HttpStatus.SC_BAD_REQUEST)
             body("result", equalTo("ERROR"))
             body("data", equalTo(null))
-            body("error.code", equalTo(ErrorCode.E100.name))
+            body("error.code", equalTo(ErrorCode.E400.name))
             body("error.message", equalTo(ErrorType.DUPLICATE_EMAIL_EXCEPTION.message))
             body("error.data", equalTo("이미 존재하는 email입니다."))
             log().all()

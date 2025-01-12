@@ -24,3 +24,11 @@ class BrandNotFoundException(
 class ProductNotFoundException(
     data: Any? = null,
 ) : CoreException(ErrorType.PRODUCT_NOT_FOUND_EXCEPTION, data)
+
+class CheckoutTimeoutException(
+    data: Any? = null,
+) : CoreException(ErrorType.CHECKOUT_TIMEOUT_EXCEPTION, data)
+
+class InsufficientStockException(
+    data: Any? = null,
+) : CoreException(ErrorType.INSUFFICIENT_STOCK_EXCEPTION, data)
