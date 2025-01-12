@@ -236,8 +236,8 @@ class ProductRestControllerTest(
             statusCode(HttpStatus.SC_NOT_FOUND)
             body("result", equalTo("ERROR"))
             body("data", equalTo(null))
-            body("error.code", equalTo(ErrorCode.E104.name))
-            body("error.message", equalTo(ErrorType.PRODUCT__NOT_FOUND_EXCEPTION.message))
+            body("error.code", equalTo(ErrorCode.E404.name))
+            body("error.message", equalTo(ErrorType.PRODUCT_NOT_FOUND_EXCEPTION.message))
             body("error.data", equalTo("상품을 찾을 수 없습니다. id: $INVALID_ID"))
             log().all()
         }

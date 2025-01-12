@@ -117,7 +117,7 @@ class BrandRestControllerTest(
             statusCode(HttpStatus.SC_NOT_FOUND)
             body("result", equalTo("ERROR"))
             body("data", equalTo(null))
-            body("error.code", equalTo(ErrorCode.E104.name))
+            body("error.code", equalTo(ErrorCode.E404.name))
             body("error.message", equalTo(ErrorType.BRAND_NOT_FOUND_EXCEPTION.message))
             body("error.data", equalTo("브랜드를 찾을 수 없습니다. id: $INVALID_ID"))
             log().all()

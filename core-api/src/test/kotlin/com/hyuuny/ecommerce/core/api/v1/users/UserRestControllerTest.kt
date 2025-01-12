@@ -120,7 +120,7 @@ class UserRestControllerTest(
             statusCode(HttpStatus.SC_NOT_FOUND)
             body("result", equalTo("ERROR"))
             body("data", equalTo(null))
-            body("error.code", equalTo(ErrorCode.E104.name))
+            body("error.code", equalTo(ErrorCode.E404.name))
             body("error.message", equalTo(ErrorType.USER_NOT_FOUND_EXCEPTION.message))
             body("error.data", equalTo("회원을 찾을 수 없습니다. id: $invalidId"))
             log().all()
