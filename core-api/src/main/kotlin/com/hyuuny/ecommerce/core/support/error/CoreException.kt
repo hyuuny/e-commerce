@@ -23,4 +23,4 @@ class BrandNotFoundException(
 
 class ProductNotFoundException(
     data: Any? = null,
-) : CoreException(ErrorType.PRODUCT__NOT_FOUND_EXCEPTION, data)
+) : CoreException(ErrorType.PRODUCT_NOT_FOUND_EXCEPTION, data)
