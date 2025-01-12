@@ -1,6 +1,8 @@
 package com.hyuuny.ecommerce.core.api.v1.orders
 
 import com.hyuuny.ecommerce.core.BaseIntegrationTest
+import com.hyuuny.ecommerce.core.support.error.ErrorCode
+import com.hyuuny.ecommerce.core.support.error.ErrorType
 import com.hyuuny.ecommerce.core.support.response.ResultType
 import com.hyuuny.ecommerce.storage.db.core.catalog.products.*
 import com.hyuuny.ecommerce.storage.db.core.catalog.products.ProductStatus.ON_SALE
@@ -86,6 +88,60 @@ class OrderRestControllerTest(
             body("data.items[1].discountPrice", equalTo(request.items[1].discountPrice.toInt()))
             body("data.items[1].price", equalTo(request.items[1].price.toInt()))
             body("data.items[1].totalPrice", equalTo(productEntities[1].calculateTotalPrice().times(2).toInt()))
+            log().all()
+        }
+    }
+
+    @Test
+    fun `주문시 제품의 재고가 부족하면 주문에 실패한다`() {
+        val productEntity = productRepository.save(
+            ProductEntity(
+                1, ON_SALE, "product-1", "thumbnail-1.png", Price(20000),
+                DiscountPrice(1000), StockQuantity(100)
+            )
+        )
+        val checkoutItem = listOf(
+            CheckoutItemRequestDto(
+                productId = productEntity.id,
+                quantity = 150,
+                discountPrice = productEntity.discountPrice.discountAmount * 150,
+                price = productEntity.price.amount * 150,
+                totalPrice = productEntity.calculateTotalPrice(),
+            )
+        )
+        val request = CheckoutRequestDto(
+            userId = 1,
+            orderer = OrdererRequestDto(
+                name = "김성현",
+                phoneNumber = "01012341234"
+            ),
+            deliveryDetail = DeliveryDetailRequestDto(
+                address = "서울시 구로구 123",
+                addressDetail = "3동 503호",
+                recipientName = "김성현",
+                message = "문앞 보관해주세요!"
+            ),
+            totalProductPrice = checkoutItem[0].price,
+            totalDiscountAmount = checkoutItem[0].discountPrice,
+            shippingFee = 3000,
+            totalPrice = checkoutItem[0].totalPrice,
+            items = checkoutItem
+        )
+
+        Given {
+            contentType(ContentType.JSON)
+            header(HttpHeaders.AUTHORIZATION, generateJwtToken(DEFAULT_USER_EMAIL, DEFAULT_USER_PASSWORD))
+            body(request)
+            log().all()
+        } When {
+            post("/api/v1/orders")
+        } Then {
+            statusCode(HttpStatus.SC_BAD_REQUEST)
+            body("result", equalTo("ERROR"))
+            body("data", equalTo(null))
+            body("error.code", equalTo(ErrorCode.E400.name))
+            body("error.message", equalTo(ErrorType.INSUFFICIENT_STOCK_EXCEPTION.message))
+            body("error.data", equalTo("상품 재고가 부족합니다. id: ${productEntity.id}"))
             log().all()
         }
     }
