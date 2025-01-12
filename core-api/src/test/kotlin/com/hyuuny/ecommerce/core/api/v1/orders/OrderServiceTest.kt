@@ -1,6 +1,7 @@
 package com.hyuuny.ecommerce.core.api.v1.orders
 
 import com.hyuuny.ecommerce.core.api.v1.catalog.products.ProductReader
+import com.hyuuny.ecommerce.core.support.error.CheckoutTimeoutException
 import com.hyuuny.ecommerce.storage.db.core.catalog.products.ProductEntity
 import com.hyuuny.ecommerce.storage.db.core.catalog.products.ProductStatus.ON_SALE
 import com.hyuuny.ecommerce.storage.db.core.catalog.products.StockQuantity
@@ -86,6 +87,29 @@ class OrderServiceTest {
             assertThat(item.price).isEqualTo(orderItemEntities[index].price)
             assertThat(item.totalPrice).isEqualTo(orderItemEntities[index].totalPrice)
         }
+    }
+
+    @Test
+    fun `주문시 제품 잠금 획득에 실패하면 주문을 할 수 없다`() {
+        val productEntities = generateProductEntities()
+        val checkoutItems = generateCheckoutItems(productEntities)
+        val command = generateCheckout(checkoutItems)
+
+        val locks = listOf(mockk<RLock>(), mockk<RLock>())
+        every { locks[0].name } returns "$tryLockTime:0"
+        every { locks[1].name } returns "$tryLockTime:1"
+        every { redissonClient.getLock(ofType<String>()) } answers { locks[0] } andThenAnswer { locks[1] }
+        every { locks[0].tryLock(tryLockTime, TimeUnit.SECONDS) } returns false
+        every { locks[1].tryLock(tryLockTime, TimeUnit.SECONDS) } returns true
+        every { locks[0].unlock() } just Runs
+        every { locks[1].unlock() } just Runs
+
+        val exception = org.junit.jupiter.api.assertThrows<CheckoutTimeoutException> {
+            service.checkout(command)
+        }
+
+        assertThat(exception.message).isEqualTo("checkout timeout")
+        assertThat(exception.data).isEqualTo("제품에 대한 잠금을 획득할 수 없습니다. name: $tryLockTime:0")
     }
 
     private fun generateOrderEntity(command: Checkout) = OrderEntity(
