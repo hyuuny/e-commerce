@@ -12,4 +12,9 @@ data class StockQuantity(
     init {
         require(quantity > MINIMUM_QUANTITY_COUNT) { "수량은 0보다 커야 합니다." }
     }
+
+    operator fun minus(quantity: Long): StockQuantity {
+        val newQuantity = this.quantity - quantity
+        return StockQuantity(newQuantity)
+    }
 }

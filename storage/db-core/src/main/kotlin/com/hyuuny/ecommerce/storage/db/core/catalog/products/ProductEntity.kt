@@ -10,13 +10,19 @@ import jakarta.persistence.Table
 @Entity
 class ProductEntity(
     val brandId: Long,
-    @Enumerated(EnumType.STRING) val status: ProductStatus = ProductStatus.ON_SALE,
+    status: ProductStatus = ProductStatus.ON_SALE,
     val name: String,
     val thumbnailUrl: String,
     val price: Price,
     val discountPrice: DiscountPrice,
-    val stockQuantity: StockQuantity,
+    stockQuantity: StockQuantity,
 ) : BaseEntity() {
+    @Enumerated(EnumType.STRING)
+    var status = status
+        protected set
+
+    var stockQuantity = stockQuantity
+        protected set
 
     fun calculateDiscountPercent(): Double {
         return (discountPrice.discountAmount.toDouble() / price.amount.toDouble()) * 100
@@ -24,5 +30,18 @@ class ProductEntity(
 
     fun calculateTotalPrice(): Long {
         return (price.amount - discountPrice.discountAmount).coerceAtLeast(0)
+    }
+
+    fun isInsufficientStock(quantity: Long): Boolean {
+        return stockQuantity.quantity < quantity
+    }
+
+    fun decrease(quantity: Long) {
+        stockQuantity -= quantity
+        if (stockQuantity.quantity <= 0) soldOut()
+    }
+
+    fun soldOut() {
+        status = ProductStatus.SOLD_OUT
     }
 }
