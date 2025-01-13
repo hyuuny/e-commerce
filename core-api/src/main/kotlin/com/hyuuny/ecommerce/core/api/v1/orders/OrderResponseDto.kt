@@ -8,10 +8,10 @@ data class OrderViewResponseDto(
     val userId: Long,
     val orderer: OrdererResponseDto,
     val deliveryDetail: DeliveryDetailResponseDto,
-    val totalProductPrice: Long,
+    val totalProductAmount: Long,
     val totalDiscountAmount: Long,
     val shippingFee: Long,
-    val totalPrice: Long,
+    val totalAmount: Long,
     val items: List<OrderItemResponseDto>,
     val createdAt: LocalDateTime,
 ) {
@@ -29,10 +29,10 @@ data class OrderViewResponseDto(
             recipientName = orderView.deliveryDetailData.recipientName,
             message = orderView.deliveryDetailData.message,
         ),
-        totalProductPrice = orderView.totalProductPrice.totalProductAmount,
-        totalDiscountAmount = orderView.totalDiscountAmount.totalDiscountAmount,
+        totalProductAmount = orderView.totalProductPrice.totalProductAmount,
+        totalDiscountAmount = orderView.totalDiscountPrice.totalDiscountAmount,
         shippingFee = orderView.shippingFee,
-        totalPrice = orderView.totalPrice.totalAmount,
+        totalAmount = orderView.totalPrice.totalAmount,
         items = orderView.items.map { OrderItemResponseDto(it) },
         createdAt = orderView.createdAt,
     )
@@ -56,9 +56,9 @@ data class OrderItemResponseDto(
     val productId: Long,
     val productName: String,
     val quantity: Long,
-    val discountPrice: Long,
-    val price: Long,
-    val totalPrice: Long,
+    val discountAmount: Long,
+    val amount: Long,
+    val totalAmount: Long,
 ) {
     constructor(orderItemData: OrderItemData) : this(
         id = orderItemData.id,
@@ -66,8 +66,8 @@ data class OrderItemResponseDto(
         productId = orderItemData.productId,
         productName = orderItemData.productName,
         quantity = orderItemData.quantity,
-        discountPrice = orderItemData.discountPrice.discountAmount,
-        price = orderItemData.price.amount,
-        totalPrice = orderItemData.totalPrice.totalAmount,
+        discountAmount = orderItemData.discountPrice.discountAmount,
+        amount = orderItemData.price.amount,
+        totalAmount = orderItemData.totalPrice.totalAmount,
     )
 }
