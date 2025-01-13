@@ -4,10 +4,10 @@ data class CheckoutRequestDto(
     val userId: Long,
     val orderer: OrdererRequestDto,
     val deliveryDetail: DeliveryDetailRequestDto,
-    val totalProductPrice: Long,
+    val totalProductAmount: Long,
     val totalDiscountAmount: Long,
     val shippingFee: Long,
-    val totalPrice: Long,
+    val totalAmount: Long,
     val items: List<CheckoutItemRequestDto>,
 ) {
     fun toCommand(): Checkout = Checkout(
@@ -19,10 +19,10 @@ data class CheckoutRequestDto(
             recipientName = deliveryDetail.recipientName,
             message = deliveryDetail.message
         ),
-        totalProductPrice = totalProductPrice,
+        totalProductAmount = totalProductAmount,
         totalDiscountAmount = totalDiscountAmount,
         shippingFee = shippingFee,
-        totalPrice = totalPrice,
+        totalAmount = totalAmount,
         items = items.map { it.toCommand() }
     )
 }
@@ -42,15 +42,15 @@ data class DeliveryDetailRequestDto(
 data class CheckoutItemRequestDto(
     val productId: Long,
     val quantity: Long,
-    val discountPrice: Long,
-    val price: Long,
-    val totalPrice: Long,
+    val discountAmount: Long,
+    val amount: Long,
+    val totalAmount: Long,
 ) {
     fun toCommand(): CheckoutItem = CheckoutItem(
         productId = productId,
         quantity = quantity,
-        discountPrice = discountPrice,
-        price = price,
-        totalPrice = totalPrice,
+        discountAmount = discountAmount,
+        amount = amount,
+        totalAmount = totalAmount,
     )
 }

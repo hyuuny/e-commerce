@@ -6,10 +6,10 @@ data class Checkout(
     val userId: Long,
     val orderer: OrdererCommand,
     val deliveryDetail: DeliveryDetailCommand,
-    val totalProductPrice: Long,
+    val totalProductAmount: Long,
     val totalDiscountAmount: Long,
     val shippingFee: Long,
-    val totalPrice: Long,
+    val totalAmount: Long,
     val items: List<CheckoutItem>,
 ) {
     fun toEntity(orderCode: String): OrderEntity = OrderEntity(
@@ -22,10 +22,10 @@ data class Checkout(
             recipientName = deliveryDetail.recipientName,
             message = deliveryDetail.message
         ),
-        totalProductPrice = TotalProductPrice(totalProductPrice),
-        totalDiscountAmount = TotalDiscountPrice(totalDiscountAmount),
+        totalProductPrice = TotalProductPrice(totalProductAmount),
+        totalDiscountPrice = TotalDiscountPrice(totalDiscountAmount),
         shippingFee = shippingFee,
-        totalPrice = TotalPrice(totalPrice),
+        totalPrice = TotalPrice(totalAmount),
     )
 }
 
@@ -44,17 +44,17 @@ data class DeliveryDetailCommand(
 data class CheckoutItem(
     val productId: Long,
     val quantity: Long,
-    val discountPrice: Long,
-    val price: Long,
-    val totalPrice: Long,
+    val discountAmount: Long,
+    val amount: Long,
+    val totalAmount: Long,
 ) {
     fun toEntity(orderId: Long, productName: String): OrderItemEntity = OrderItemEntity(
         orderId = orderId,
         productId = productId,
         productName = productName,
         quantity = quantity,
-        discountPrice = DiscountPrice(discountPrice),
-        price = Price(price),
-        totalPrice = TotalPrice(totalPrice),
+        discountPrice = DiscountPrice(discountAmount),
+        price = Price(amount),
+        totalPrice = TotalPrice(totalAmount),
     )
 }

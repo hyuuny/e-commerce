@@ -72,22 +72,22 @@ class OrderRestControllerTest(
             body("data.deliveryDetail.addressDetail", equalTo(request.deliveryDetail.addressDetail))
             body("data.deliveryDetail.recipientName", equalTo(request.deliveryDetail.recipientName))
             body("data.deliveryDetail.message", equalTo(request.deliveryDetail.message))
-            body("data.totalProductPrice", equalTo(request.totalProductPrice.toInt()))
+            body("data.totalProductAmount", equalTo(request.totalProductAmount.toInt()))
             body("data.totalDiscountAmount", equalTo(request.totalDiscountAmount.toInt()))
             body("data.shippingFee", equalTo(request.shippingFee.toInt()))
-            body("data.totalPrice", equalTo(request.totalPrice.toInt()))
+            body("data.totalAmount", equalTo(request.totalAmount.toInt()))
             body("data.items[0].productId", equalTo(request.items[0].productId.toInt()))
             body("data.items[0].productName", equalTo(productEntities[0].name))
             body("data.items[0].quantity", equalTo(request.items[0].quantity.toInt()))
-            body("data.items[0].discountPrice", equalTo(request.items[0].discountPrice.toInt()))
-            body("data.items[0].price", equalTo(request.items[0].price.toInt()))
-            body("data.items[0].totalPrice", equalTo(productEntities[0].calculateTotalPrice().times(1).toInt()))
+            body("data.items[0].discountAmount", equalTo(request.items[0].discountAmount.toInt()))
+            body("data.items[0].amount", equalTo(request.items[0].amount.toInt()))
+            body("data.items[0].totalAmount", equalTo(productEntities[0].calculateTotalPrice().times(1).toInt()))
             body("data.items[1].productId", equalTo(request.items[1].productId.toInt()))
             body("data.items[1].productName", equalTo(productEntities[1].name))
             body("data.items[1].quantity", equalTo(request.items[1].quantity.toInt()))
-            body("data.items[1].discountPrice", equalTo(request.items[1].discountPrice.toInt()))
-            body("data.items[1].price", equalTo(request.items[1].price.toInt()))
-            body("data.items[1].totalPrice", equalTo(productEntities[1].calculateTotalPrice().times(2).toInt()))
+            body("data.items[1].discountAmount", equalTo(request.items[1].discountAmount.toInt()))
+            body("data.items[1].amount", equalTo(request.items[1].amount.toInt()))
+            body("data.items[1].totalAmount", equalTo(productEntities[1].calculateTotalPrice().times(2).toInt()))
             log().all()
         }
     }
@@ -104,9 +104,9 @@ class OrderRestControllerTest(
             CheckoutItemRequestDto(
                 productId = productEntity.id,
                 quantity = 150,
-                discountPrice = productEntity.discountPrice.discountAmount * 150,
-                price = productEntity.price.amount * 150,
-                totalPrice = productEntity.calculateTotalPrice(),
+                discountAmount = productEntity.discountPrice.discountAmount * 150,
+                amount = productEntity.price.amount * 150,
+                totalAmount = productEntity.calculateTotalPrice(),
             )
         )
         val request = CheckoutRequestDto(
@@ -121,10 +121,10 @@ class OrderRestControllerTest(
                 recipientName = "김성현",
                 message = "문앞 보관해주세요!"
             ),
-            totalProductPrice = checkoutItem[0].price,
-            totalDiscountAmount = checkoutItem[0].discountPrice,
+            totalProductAmount = checkoutItem[0].amount,
+            totalDiscountAmount = checkoutItem[0].discountAmount,
             shippingFee = 3000,
-            totalPrice = checkoutItem[0].totalPrice,
+            totalAmount = checkoutItem[0].totalAmount,
             items = checkoutItem
         )
 
@@ -147,8 +147,8 @@ class OrderRestControllerTest(
     }
 
     private fun generateCheckoutRequest(checkoutItems: List<CheckoutItemRequestDto>): CheckoutRequestDto {
-        val totalProductPrice = checkoutItems[0].price + checkoutItems[1].price
-        val totalDiscountAmount = checkoutItems[0].discountPrice + checkoutItems[1].discountPrice
+        val totalProductPrice = checkoutItems[0].amount + checkoutItems[1].amount
+        val totalDiscountAmount = checkoutItems[0].discountAmount + checkoutItems[1].discountAmount
         val shippingFee = 3000L
         val totalPrice = totalProductPrice - totalDiscountAmount + shippingFee
 
@@ -164,10 +164,10 @@ class OrderRestControllerTest(
                 recipientName = "김성현",
                 message = "문앞 보관해주세요!"
             ),
-            totalProductPrice = totalProductPrice,
+            totalProductAmount = totalProductPrice,
             totalDiscountAmount = totalDiscountAmount,
             shippingFee = shippingFee,
-            totalPrice = totalPrice,
+            totalAmount = totalPrice,
             items = checkoutItems
         )
     }
@@ -177,16 +177,16 @@ class OrderRestControllerTest(
             CheckoutItemRequestDto(
                 productId = productEntities[0].id,
                 quantity = 1,
-                discountPrice = productEntities[0].discountPrice.discountAmount * 1,
-                price = productEntities[0].price.amount * 1,
-                totalPrice = productEntities[0].calculateTotalPrice() * 1
+                discountAmount = productEntities[0].discountPrice.discountAmount * 1,
+                amount = productEntities[0].price.amount * 1,
+                totalAmount = productEntities[0].calculateTotalPrice() * 1
             ),
             CheckoutItemRequestDto(
                 productId = productEntities[1].id,
                 quantity = 2,
-                discountPrice = productEntities[1].discountPrice.discountAmount * 2,
-                price = productEntities[1].price.amount * 2,
-                totalPrice = productEntities[1].calculateTotalPrice() * 2
+                discountAmount = productEntities[1].discountPrice.discountAmount * 2,
+                amount = productEntities[1].price.amount * 2,
+                totalAmount = productEntities[1].calculateTotalPrice() * 2
             ),
         )
 

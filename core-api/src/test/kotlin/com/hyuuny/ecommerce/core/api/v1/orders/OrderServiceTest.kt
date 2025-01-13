@@ -50,9 +50,9 @@ class OrderServiceTest {
                 productId = item.productId,
                 productName = productEntities[index].name,
                 quantity = item.quantity,
-                discountPrice = DiscountPrice(item.discountPrice),
-                price = Price(item.price),
-                totalPrice = TotalPrice(item.totalPrice)
+                discountPrice = DiscountPrice(item.discountAmount),
+                price = Price(item.amount),
+                totalPrice = TotalPrice(item.totalAmount)
             )
         }
         val locks = listOf(mockk<RLock>(), mockk<RLock>())
@@ -76,7 +76,7 @@ class OrderServiceTest {
         assertThat(newOrder.deliveryDetailData.recipientName).isEqualTo(orderEntity.deliveryDetail.recipientName)
         assertThat(newOrder.deliveryDetailData.message).isEqualTo(orderEntity.deliveryDetail.message)
         assertThat(newOrder.totalProductPrice).isEqualTo(orderEntity.totalProductPrice)
-        assertThat(newOrder.totalDiscountAmount).isEqualTo(orderEntity.totalDiscountAmount)
+        assertThat(newOrder.totalDiscountPrice).isEqualTo(orderEntity.totalDiscountPrice)
         assertThat(newOrder.shippingFee).isEqualTo(orderEntity.shippingFee)
         assertThat(newOrder.totalPrice).isEqualTo(orderEntity.totalPrice)
         assertThat(newOrder.items).hasSize(2)
@@ -128,9 +128,9 @@ class OrderServiceTest {
             CheckoutItem(
                 productId = productEntity.id,
                 quantity = 150,
-                discountPrice = productEntity.discountPrice.discountAmount * 150,
-                price = productEntity.price.amount * 150,
-                totalPrice = productEntity.calculateTotalPrice(),
+                discountAmount = productEntity.discountPrice.discountAmount * 150,
+                amount = productEntity.price.amount * 150,
+                totalAmount = productEntity.calculateTotalPrice(),
             )
         )
         val command = Checkout(
@@ -145,10 +145,10 @@ class OrderServiceTest {
                 recipientName = "김성현",
                 message = "문앞 보관해주세요!"
             ),
-            totalProductPrice = checkoutItem[0].price,
-            totalDiscountAmount = checkoutItem[0].discountPrice,
+            totalProductAmount = checkoutItem[0].amount,
+            totalDiscountAmount = checkoutItem[0].discountAmount,
             shippingFee = 3000,
-            totalPrice = checkoutItem[0].totalPrice,
+            totalAmount = checkoutItem[0].totalAmount,
             items = checkoutItem
         )
         val orderEntity = generateOrderEntity(command)
@@ -185,15 +185,15 @@ class OrderServiceTest {
             recipientName = "김성현",
             message = "문앞 보관해주세요!"
         ),
-        totalProductPrice = TotalProductPrice(command.totalProductPrice),
-        totalDiscountAmount = TotalDiscountPrice(command.totalDiscountAmount),
+        totalProductPrice = TotalProductPrice(command.totalProductAmount),
+        totalDiscountPrice = TotalDiscountPrice(command.totalDiscountAmount),
         shippingFee = command.shippingFee,
-        totalPrice = TotalPrice(command.totalPrice),
+        totalPrice = TotalPrice(command.totalAmount),
     )
 
     private fun generateCheckout(checkoutItems: List<CheckoutItem>): Checkout {
-        val totalProductPrice = checkoutItems[0].price + checkoutItems[1].price
-        val totalDiscountAmount = checkoutItems[0].discountPrice + checkoutItems[1].discountPrice
+        val totalProductPrice = checkoutItems[0].amount + checkoutItems[1].amount
+        val totalDiscountAmount = checkoutItems[0].discountAmount + checkoutItems[1].discountAmount
         val shippingFee = 3000L
         val totalPrice = totalProductPrice - totalDiscountAmount + shippingFee
 
@@ -209,10 +209,10 @@ class OrderServiceTest {
                 recipientName = "김성현",
                 message = "문앞 보관해주세요!"
             ),
-            totalProductPrice = totalProductPrice,
+            totalProductAmount = totalProductPrice,
             totalDiscountAmount = totalDiscountAmount,
             shippingFee = shippingFee,
-            totalPrice = totalPrice,
+            totalAmount = totalPrice,
             items = checkoutItems
         )
     }
@@ -222,16 +222,16 @@ class OrderServiceTest {
             CheckoutItem(
                 productId = productEntities[0].id,
                 quantity = 1,
-                discountPrice = productEntities[0].discountPrice.discountAmount * 1,
-                price = productEntities[0].price.amount * 1,
-                totalPrice = productEntities[0].calculateTotalPrice() * 1,
+                discountAmount = productEntities[0].discountPrice.discountAmount * 1,
+                amount = productEntities[0].price.amount * 1,
+                totalAmount = productEntities[0].calculateTotalPrice() * 1,
             ),
             CheckoutItem(
                 productId = productEntities[1].id,
                 quantity = 2,
-                discountPrice = productEntities[1].discountPrice.discountAmount * 2,
-                price = productEntities[1].price.amount * 2,
-                totalPrice = productEntities[1].calculateTotalPrice() * 2,
+                discountAmount = productEntities[1].discountPrice.discountAmount * 2,
+                amount = productEntities[1].price.amount * 2,
+                totalAmount = productEntities[1].calculateTotalPrice() * 2,
             ),
         )
 
