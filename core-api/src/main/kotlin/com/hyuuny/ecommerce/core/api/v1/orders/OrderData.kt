@@ -33,7 +33,7 @@ data class OrderView(
             message = entity.deliveryDetail.message,
         ),
         totalProductPrice = entity.totalProductPrice,
-        totalDiscountAmount = entity.totalDiscountAmount,
+        totalDiscountAmount = entity.totalDiscountPrice,
         shippingFee = entity.shippingFee,
         totalPrice = entity.totalPrice,
         items = items.map { OrderItemData(it) },

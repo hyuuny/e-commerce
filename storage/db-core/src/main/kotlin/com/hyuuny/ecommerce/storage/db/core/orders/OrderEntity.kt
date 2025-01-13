@@ -12,7 +12,7 @@ class OrderEntity(
     @Embedded val orderer: Orderer,
     @Embedded val deliveryDetail: DeliveryDetail,
     val totalProductPrice: TotalProductPrice,
-    val totalDiscountAmount: TotalDiscountPrice,
+    val totalDiscountPrice: TotalDiscountPrice,
     val shippingFee: Long,
     val totalPrice: TotalPrice,
 ) : BaseEntity() {

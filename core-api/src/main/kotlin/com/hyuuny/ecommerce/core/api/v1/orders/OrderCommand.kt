@@ -23,7 +23,7 @@ data class Checkout(
             message = deliveryDetail.message
         ),
         totalProductPrice = TotalProductPrice(totalProductPrice),
-        totalDiscountAmount = TotalDiscountPrice(totalDiscountAmount),
+        totalDiscountPrice = TotalDiscountPrice(totalDiscountAmount),
         shippingFee = shippingFee,
         totalPrice = TotalPrice(totalPrice),
     )

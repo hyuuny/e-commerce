@@ -76,7 +76,7 @@ class OrderServiceTest {
         assertThat(newOrder.deliveryDetailData.recipientName).isEqualTo(orderEntity.deliveryDetail.recipientName)
         assertThat(newOrder.deliveryDetailData.message).isEqualTo(orderEntity.deliveryDetail.message)
         assertThat(newOrder.totalProductPrice).isEqualTo(orderEntity.totalProductPrice)
-        assertThat(newOrder.totalDiscountAmount).isEqualTo(orderEntity.totalDiscountAmount)
+        assertThat(newOrder.totalDiscountAmount).isEqualTo(orderEntity.totalDiscountPrice)
         assertThat(newOrder.shippingFee).isEqualTo(orderEntity.shippingFee)
         assertThat(newOrder.totalPrice).isEqualTo(orderEntity.totalPrice)
         assertThat(newOrder.items).hasSize(2)
@@ -186,7 +186,7 @@ class OrderServiceTest {
             message = "문앞 보관해주세요!"
         ),
         totalProductPrice = TotalProductPrice(command.totalProductPrice),
-        totalDiscountAmount = TotalDiscountPrice(command.totalDiscountAmount),
+        totalDiscountPrice = TotalDiscountPrice(command.totalDiscountAmount),
         shippingFee = command.shippingFee,
         totalPrice = TotalPrice(command.totalPrice),
     )
