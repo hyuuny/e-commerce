@@ -3,6 +3,7 @@ package com.hyuuny.ecommerce.core.api.v1.orders
 import com.hyuuny.ecommerce.core.api.v1.catalog.products.ProductReader
 import com.hyuuny.ecommerce.core.support.error.CheckoutTimeoutException
 import com.hyuuny.ecommerce.core.support.error.InsufficientStockException
+import com.hyuuny.ecommerce.core.support.error.OrderNotFoundException
 import com.hyuuny.ecommerce.storage.db.core.catalog.products.ProductEntity
 import com.hyuuny.ecommerce.storage.db.core.catalog.products.ProductStatus.ON_SALE
 import com.hyuuny.ecommerce.storage.db.core.catalog.products.StockQuantity
@@ -221,6 +222,19 @@ class OrderServiceTest {
             assertThat(item.price).isEqualTo(orderItemEntities[index].price)
             assertThat(item.totalPrice).isEqualTo(orderItemEntities[index].totalPrice)
         }
+    }
+
+    @Test
+    fun `존재하지 않는 주문을 상세조회 할 수 없다`() {
+        val invalidId = 9L
+        every { reader.read(any()) } throws OrderNotFoundException("주문을 찾을 수 없습니다. id: $invalidId")
+
+        val exception = assertThrows<OrderNotFoundException> {
+            service.getOrder(invalidId)
+        }
+
+        assertThat(exception.message).isEqualTo("order notFound")
+        assertThat(exception.data).isEqualTo("주문을 찾을 수 없습니다. id: $invalidId")
     }
 
     private fun generateOrderEntity(command: Checkout) = OrderEntity(
