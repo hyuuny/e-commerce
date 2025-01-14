@@ -32,3 +32,7 @@ class CheckoutTimeoutException(
 class InsufficientStockException(
     data: Any? = null,
 ) : CoreException(ErrorType.INSUFFICIENT_STOCK_EXCEPTION, data)
+
+class OrderNotFoundException(
+    data: Any? = null,
+) : CoreException(ErrorType.ORDER_NOT_FOUND_EXCEPTION, data)

@@ -13,4 +13,5 @@ enum class ErrorType(val status: HttpStatus, val code: ErrorCode, val message: S
     PRODUCT_NOT_FOUND_EXCEPTION(HttpStatus.NOT_FOUND, ErrorCode.E404, "product notFound", LogLevel.ERROR),
     CHECKOUT_TIMEOUT_EXCEPTION(HttpStatus.BAD_REQUEST, ErrorCode.E400, "checkout timeout", LogLevel.ERROR),
     INSUFFICIENT_STOCK_EXCEPTION(HttpStatus.BAD_REQUEST, ErrorCode.E400, "insufficient stock", LogLevel.ERROR),
+    ORDER_NOT_FOUND_EXCEPTION(HttpStatus.NOT_FOUND, ErrorCode.E404, "order notFound", LogLevel.ERROR),
 }
