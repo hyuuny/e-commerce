@@ -3,6 +3,7 @@ package com.hyuuny.ecommerce.core.api.v1.orders
 import com.hyuuny.ecommerce.core.api.v1.catalog.products.ProductReader
 import com.hyuuny.ecommerce.core.support.error.CheckoutTimeoutException
 import com.hyuuny.ecommerce.core.support.error.InsufficientStockException
+import com.hyuuny.ecommerce.core.support.error.OrderNotFoundException
 import com.hyuuny.ecommerce.storage.db.core.catalog.products.ProductEntity
 import com.hyuuny.ecommerce.storage.db.core.catalog.products.ProductStatus.ON_SALE
 import com.hyuuny.ecommerce.storage.db.core.catalog.products.StockQuantity
@@ -15,6 +16,7 @@ import io.mockk.mockk
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.redisson.api.RLock
 import org.redisson.api.RedissonClient
 import java.time.LocalDateTime
@@ -23,6 +25,8 @@ import java.util.concurrent.TimeUnit
 class OrderServiceTest {
     private lateinit var writer: OrderWriter
     private lateinit var orderItemWriter: OrderItemWriter
+    private lateinit var reader: OrderReader
+    private lateinit var orderItemReader: OrderItemReader
     private lateinit var productReader: ProductReader
     private lateinit var redissonClient: RedissonClient
     private lateinit var service: OrderService
@@ -33,9 +37,11 @@ class OrderServiceTest {
     fun setUp() {
         writer = mockk()
         orderItemWriter = mockk()
+        reader = mockk()
+        orderItemReader = mockk()
         productReader = mockk()
         redissonClient = mockk()
-        service = OrderService(writer, orderItemWriter, productReader, redissonClient)
+        service = OrderService(writer, orderItemWriter, reader, orderItemReader, productReader, redissonClient)
     }
 
     @Test
@@ -105,7 +111,7 @@ class OrderServiceTest {
         every { locks[0].unlock() } just Runs
         every { locks[1].unlock() } just Runs
 
-        val exception = org.junit.jupiter.api.assertThrows<CheckoutTimeoutException> {
+        val exception = assertThrows<CheckoutTimeoutException> {
             service.checkout(command)
         }
 
@@ -164,12 +170,71 @@ class OrderServiceTest {
         every { locks[0].unlock() } just Runs
         every { locks[1].unlock() } just Runs
 
-        val exception = org.junit.jupiter.api.assertThrows<InsufficientStockException> {
+        val exception = assertThrows<InsufficientStockException> {
             service.checkout(command)
         }
 
         assertThat(exception.message).isEqualTo("insufficient stock")
         assertThat(exception.data).isEqualTo("상품 재고가 부족합니다. id: ${productEntity.id}")
+    }
+
+    @Test
+    fun `주문 내역을 상세조회 할 수 있다`() {
+        val productEntities = generateProductEntities()
+        val checkoutItems = generateCheckoutItems(productEntities)
+        val command = generateCheckout(checkoutItems)
+        val orderEntity = generateOrderEntity(command)
+        val orderItemEntities = checkoutItems.mapIndexed { index, item ->
+            OrderItemEntity(
+                orderId = orderEntity.id,
+                productId = item.productId,
+                productName = productEntities[index].name,
+                quantity = item.quantity,
+                discountPrice = DiscountPrice(item.discountAmount),
+                price = Price(item.amount),
+                totalPrice = TotalPrice(item.totalAmount)
+            )
+        }
+        every { reader.read(any()) } returns orderEntity
+        every { orderItemReader.readAll(any()) } returns orderItemEntities
+
+        val order = service.getOrder(orderEntity.id)
+
+        assertThat(order.orderCode).isEqualTo(orderEntity.orderCode)
+        assertThat(order.status).isEqualTo(orderEntity.status)
+        assertThat(order.userId).isEqualTo(orderEntity.userId)
+        assertThat(order.orderer.name).isEqualTo(orderEntity.orderer.name)
+        assertThat(order.orderer.phoneNumber).isEqualTo(orderEntity.orderer.phoneNumber)
+        assertThat(order.deliveryDetailData.address).isEqualTo(orderEntity.deliveryDetail.address)
+        assertThat(order.deliveryDetailData.addressDetail).isEqualTo(orderEntity.deliveryDetail.addressDetail)
+        assertThat(order.deliveryDetailData.recipientName).isEqualTo(orderEntity.deliveryDetail.recipientName)
+        assertThat(order.deliveryDetailData.message).isEqualTo(orderEntity.deliveryDetail.message)
+        assertThat(order.totalProductPrice).isEqualTo(orderEntity.totalProductPrice)
+        assertThat(order.totalDiscountPrice).isEqualTo(orderEntity.totalDiscountPrice)
+        assertThat(order.shippingFee).isEqualTo(orderEntity.shippingFee)
+        assertThat(order.totalPrice).isEqualTo(orderEntity.totalPrice)
+        assertThat(order.items).hasSize(2)
+        order.items.forEachIndexed { index, item ->
+            assertThat(item.orderId).isEqualTo(orderItemEntities[index].orderId)
+            assertThat(item.productName).isEqualTo(orderItemEntities[index].productName)
+            assertThat(item.quantity).isEqualTo(orderItemEntities[index].quantity)
+            assertThat(item.discountPrice).isEqualTo(orderItemEntities[index].discountPrice)
+            assertThat(item.price).isEqualTo(orderItemEntities[index].price)
+            assertThat(item.totalPrice).isEqualTo(orderItemEntities[index].totalPrice)
+        }
+    }
+
+    @Test
+    fun `존재하지 않는 주문을 상세조회 할 수 없다`() {
+        val invalidId = 9L
+        every { reader.read(any()) } throws OrderNotFoundException("주문을 찾을 수 없습니다. id: $invalidId")
+
+        val exception = assertThrows<OrderNotFoundException> {
+            service.getOrder(invalidId)
+        }
+
+        assertThat(exception.message).isEqualTo("order notFound")
+        assertThat(exception.data).isEqualTo("주문을 찾을 수 없습니다. id: $invalidId")
     }
 
     private fun generateOrderEntity(command: Checkout) = OrderEntity(

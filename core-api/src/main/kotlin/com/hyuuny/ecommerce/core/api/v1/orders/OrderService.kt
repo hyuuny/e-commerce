@@ -12,6 +12,8 @@ import java.util.concurrent.TimeUnit
 class OrderService(
     private val orderWriter: OrderWriter,
     private val orderItemWriter: OrderItemWriter,
+    private val orderReader: OrderReader,
+    private val orderItemReader: OrderItemReader,
     private val productReader: ProductReader,
     private val redissonClient: RedissonClient
 ) {
@@ -37,5 +39,11 @@ class OrderService(
         } finally {
             locks.forEach { it.unlock() }
         }
+    }
+
+    fun getOrder(id: Long): OrderView {
+        val order = orderReader.read(id)
+        val orderItems = orderItemReader.readAll(order.id)
+        return OrderView(order, orderItems)
     }
 }

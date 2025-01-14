@@ -1,10 +1,12 @@
 package com.hyuuny.ecommerce.core.api.v1.orders
 
+import com.hyuuny.ecommerce.storage.db.core.orders.OrderStatus
 import java.time.LocalDateTime
 
 data class OrderViewResponseDto(
     val id: Long,
     val orderCode: String,
+    val status: OrderStatus,
     val userId: Long,
     val orderer: OrdererResponseDto,
     val deliveryDetail: DeliveryDetailResponseDto,
@@ -18,6 +20,7 @@ data class OrderViewResponseDto(
     constructor(orderView: OrderView) : this(
         id = orderView.id,
         orderCode = orderView.orderCode,
+        status = orderView.status,
         userId = orderView.userId,
         orderer = OrdererResponseDto(
             name = orderView.orderer.name,
