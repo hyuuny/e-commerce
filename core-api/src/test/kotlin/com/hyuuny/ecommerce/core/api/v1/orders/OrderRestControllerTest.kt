@@ -228,6 +228,25 @@ class OrderRestControllerTest(
         }
     }
 
+    @Test
+    fun `존재하지 않는 주문을 상세조회 할 수 없다`() {
+        Given {
+            contentType(ContentType.JSON)
+            header(HttpHeaders.AUTHORIZATION, generateJwtToken(DEFAULT_USER_EMAIL, DEFAULT_USER_PASSWORD))
+            log().all()
+        } When {
+            get("/api/v1/orders/$INVALID_ID")
+        } Then {
+            statusCode(HttpStatus.SC_NOT_FOUND)
+            body("result", equalTo(ResultType.ERROR.name))
+            body("data", equalTo(null))
+            body("error.code", equalTo(ErrorCode.E404.name))
+            body("error.message", equalTo(ErrorType.ORDER_NOT_FOUND_EXCEPTION.message))
+            body("error.data", equalTo("주문을 찾을 수 없습니다. id: $INVALID_ID"))
+            log().all()
+        }
+    }
+
     private fun generateCheckoutRequest(checkoutItems: List<CheckoutItemRequestDto>): CheckoutRequestDto {
         val totalProductPrice = checkoutItems[0].amount + checkoutItems[1].amount
         val totalDiscountAmount = checkoutItems[0].discountAmount + checkoutItems[1].discountAmount
