@@ -1,7 +1,6 @@
 package com.hyuuny.ecommerce.core.api.v1.orders
 
 import com.hyuuny.ecommerce.core.api.v1.catalog.products.ProductReader
-import com.hyuuny.ecommerce.core.support.error.CheckoutTimeoutException
 import com.hyuuny.ecommerce.core.support.error.InsufficientStockException
 import com.hyuuny.ecommerce.core.support.error.OrderNotFoundException
 import com.hyuuny.ecommerce.storage.db.core.catalog.products.ProductEntity
@@ -9,18 +8,13 @@ import com.hyuuny.ecommerce.storage.db.core.catalog.products.ProductStatus.ON_SA
 import com.hyuuny.ecommerce.storage.db.core.catalog.products.StockQuantity
 import com.hyuuny.ecommerce.storage.db.core.orders.*
 import com.hyuuny.ecommerce.storage.db.core.utils.CodeGenerator
-import io.mockk.Runs
 import io.mockk.every
-import io.mockk.just
 import io.mockk.mockk
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import org.redisson.api.RLock
-import org.redisson.api.RedissonClient
 import java.time.LocalDateTime
-import java.util.concurrent.TimeUnit
 
 class OrderServiceTest {
     private lateinit var writer: OrderWriter
@@ -28,7 +22,6 @@ class OrderServiceTest {
     private lateinit var reader: OrderReader
     private lateinit var orderItemReader: OrderItemReader
     private lateinit var productReader: ProductReader
-    private lateinit var redissonClient: RedissonClient
     private lateinit var service: OrderService
 
     private val tryLockTime = 10L
@@ -40,8 +33,7 @@ class OrderServiceTest {
         reader = mockk()
         orderItemReader = mockk()
         productReader = mockk()
-        redissonClient = mockk()
-        service = OrderService(writer, orderItemWriter, reader, orderItemReader, productReader, redissonClient)
+        service = OrderService(writer, orderItemWriter, reader, orderItemReader, productReader)
     }
 
     @Test
@@ -61,14 +53,9 @@ class OrderServiceTest {
                 totalPrice = TotalPrice(item.totalAmount)
             )
         }
-        val locks = listOf(mockk<RLock>(), mockk<RLock>())
-        every { redissonClient.getLock(ofType<String>()) } answers { locks[0] } andThenAnswer { locks[1] }
-        every { locks[0].tryLock(tryLockTime, TimeUnit.SECONDS) } returns true
-        every { locks[1].tryLock(tryLockTime, TimeUnit.SECONDS) } returns true
         every { productReader.readAllByIds(any()) } returns productEntities
         every { writer.checkout(any()) } returns orderEntity
         every { orderItemWriter.append(any(), any(), any()) } returns orderItemEntities
-        every { locks.forEach { it.unlock() } } just Runs
 
         val newOrder = service.checkout(command)
 
@@ -94,29 +81,6 @@ class OrderServiceTest {
             assertThat(item.price).isEqualTo(orderItemEntities[index].price)
             assertThat(item.totalPrice).isEqualTo(orderItemEntities[index].totalPrice)
         }
-    }
-
-    @Test
-    fun `주문시 제품 잠금 획득에 실패하면 주문을 할 수 없다`() {
-        val productEntities = generateProductEntities()
-        val checkoutItems = generateCheckoutItems(productEntities)
-        val command = generateCheckout(checkoutItems)
-
-        val locks = listOf(mockk<RLock>(), mockk<RLock>())
-        every { locks[0].name } returns "$tryLockTime:0"
-        every { locks[1].name } returns "$tryLockTime:1"
-        every { redissonClient.getLock(ofType<String>()) } answers { locks[0] } andThenAnswer { locks[1] }
-        every { locks[0].tryLock(tryLockTime, TimeUnit.SECONDS) } returns false
-        every { locks[1].tryLock(tryLockTime, TimeUnit.SECONDS) } returns true
-        every { locks[0].unlock() } just Runs
-        every { locks[1].unlock() } just Runs
-
-        val exception = assertThrows<CheckoutTimeoutException> {
-            service.checkout(command)
-        }
-
-        assertThat(exception.message).isEqualTo("checkout timeout")
-        assertThat(exception.data).isEqualTo("제품에 대한 잠금을 획득할 수 없습니다. name: $tryLockTime:0")
     }
 
     @Test
@@ -159,16 +123,10 @@ class OrderServiceTest {
         )
         val orderEntity = generateOrderEntity(command)
 
-        val locks = listOf(mockk<RLock>(), mockk<RLock>())
-        every { redissonClient.getLock(ofType<String>()) } answers { locks[0] } andThenAnswer { locks[1] }
-        every { locks[0].tryLock(tryLockTime, TimeUnit.SECONDS) } returns true
-        every { locks[1].tryLock(tryLockTime, TimeUnit.SECONDS) } returns true
         every { productReader.readAllByIds(any()) } returns listOf(productEntity)
         every { writer.checkout(any()) } returns orderEntity
         every { orderItemWriter.append(any(), any(), any()) } throws
                 InsufficientStockException("상품 재고가 부족합니다. id: ${productEntity.id}")
-        every { locks[0].unlock() } just Runs
-        every { locks[1].unlock() } just Runs
 
         val exception = assertThrows<InsufficientStockException> {
             service.checkout(command)
