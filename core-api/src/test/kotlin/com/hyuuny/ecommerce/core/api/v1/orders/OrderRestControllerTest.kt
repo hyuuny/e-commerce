@@ -8,7 +8,6 @@ import com.hyuuny.ecommerce.storage.db.core.catalog.products.*
 import com.hyuuny.ecommerce.storage.db.core.catalog.products.ProductStatus.ON_SALE
 import com.hyuuny.ecommerce.storage.db.core.orders.OrderItemRepository
 import com.hyuuny.ecommerce.storage.db.core.orders.OrderRepository
-import io.mockk.mockk
 import io.restassured.RestAssured
 import io.restassured.http.ContentType
 import io.restassured.module.kotlin.extensions.Given
@@ -20,7 +19,6 @@ import org.hamcrest.CoreMatchers.notNullValue
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.redisson.api.RedissonClient
 import org.springframework.boot.test.web.server.LocalServerPort
 import org.springframework.http.HttpHeaders
 
@@ -31,12 +29,10 @@ class OrderRestControllerTest(
     private val productRepository: ProductRepository,
     private val service: OrderService,
 ) : BaseIntegrationTest() {
-    private lateinit var redissonClient: RedissonClient
 
     @BeforeEach
     fun setUp() {
         RestAssured.port = port
-        redissonClient = mockk()
     }
 
     @AfterEach
