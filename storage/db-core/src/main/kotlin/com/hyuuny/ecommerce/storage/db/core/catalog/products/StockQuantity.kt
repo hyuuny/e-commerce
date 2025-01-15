@@ -10,7 +10,7 @@ data class StockQuantity(
     @Column(nullable = false) val quantity: Long
 ) {
     init {
-        require(quantity > MINIMUM_QUANTITY_COUNT) { "수량은 0보다 커야 합니다." }
+        require(quantity >= MINIMUM_QUANTITY_COUNT) { "수량은 0보다 커야 합니다." }
     }
 
     operator fun minus(quantity: Long): StockQuantity {
