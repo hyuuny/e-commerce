@@ -9,6 +9,5 @@ class OrderItemReader(
     private val repository: OrderItemRepository,
 ) {
     fun readAll(orderId: Long): List<OrderItemEntity> = repository.findAllByOrderId(orderId)
-
-    fun readAllByOrderIds(ids: List<Long>): List<OrderItemEntity> = repository.findAllById(ids)
+    fun readAllByOrderIds(orderIds: List<Long>): List<OrderItemEntity> = repository.findAllByOrderIdIn(orderIds)
 }

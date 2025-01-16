@@ -1,5 +1,8 @@
 package com.hyuuny.ecommerce.core.api.v1.orders
 
+import com.hyuuny.ecommerce.storage.db.core.orders.OrderStatus
+import java.time.LocalDate
+
 data class CheckoutRequestDto(
     val userId: Long,
     val orderer: OrdererRequestDto,
@@ -52,5 +55,19 @@ data class CheckoutItemRequestDto(
         discountAmount = discountAmount,
         amount = amount,
         totalAmount = totalAmount,
+    )
+}
+
+data class OrderSearchRequestDto(
+    val userId: Long,
+    val status: OrderStatus? = null,
+    val fromDate: LocalDate? = null,
+    val toDate: LocalDate? = null,
+) {
+    fun toCommand(): OrderSearchCommand = OrderSearchCommand(
+        userId = userId,
+        status = status,
+        fromDate = fromDate,
+        toDate = toDate,
     )
 }

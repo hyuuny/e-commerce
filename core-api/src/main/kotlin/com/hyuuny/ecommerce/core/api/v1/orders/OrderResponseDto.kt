@@ -74,3 +74,27 @@ data class OrderItemResponseDto(
         totalAmount = orderItemData.totalPrice.totalAmount,
     )
 }
+
+data class OrderResponseDto(
+    val id: Long,
+    val orderCode: String,
+    val status: OrderStatus,
+    val userId: Long,
+    val totalProductAmount: Long,
+    val totalDiscountAmount: Long,
+    val shippingFee: Long,
+    val totalAmount: Long,
+    val items: List<OrderItemResponseDto>,
+) {
+    constructor(orderData: OrderData) : this(
+        id = orderData.id,
+        orderCode = orderData.orderCode,
+        status = orderData.status,
+        userId = orderData.userId,
+        totalProductAmount = orderData.totalProductPrice.totalProductAmount,
+        totalDiscountAmount = orderData.totalDiscountPrice.totalDiscountAmount,
+        shippingFee = orderData.shippingFee,
+        totalAmount = orderData.totalPrice.totalAmount,
+        items = orderData.items.map { OrderItemResponseDto(it) },
+    )
+}

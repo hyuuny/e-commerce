@@ -1,6 +1,7 @@
 package com.hyuuny.ecommerce.core.api.v1.orders
 
 import com.hyuuny.ecommerce.storage.db.core.orders.*
+import java.time.LocalDate
 
 data class Checkout(
     val userId: Long,
@@ -56,5 +57,19 @@ data class CheckoutItem(
         discountPrice = DiscountPrice(discountAmount),
         price = Price(amount),
         totalPrice = TotalPrice(totalAmount),
+    )
+}
+
+data class OrderSearchCommand(
+    val userId: Long,
+    val status: OrderStatus? = null,
+    val fromDate: LocalDate? = null,
+    val toDate: LocalDate? = null,
+) {
+    fun toSearch(): SearchOrder = SearchOrder(
+        userId = userId,
+        status = status,
+        fromDate = fromDate,
+        toDate = toDate,
     )
 }

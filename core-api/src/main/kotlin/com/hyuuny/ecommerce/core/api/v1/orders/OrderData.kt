@@ -74,3 +74,27 @@ data class OrderItemData(
         totalPrice = TotalPrice(orderItemEntity.totalPrice.totalAmount),
     )
 }
+
+data class OrderData(
+    val id: Long,
+    val orderCode: String,
+    val status: OrderStatus,
+    val userId: Long,
+    val totalProductPrice: TotalProductPrice,
+    val totalDiscountPrice: TotalDiscountPrice,
+    val shippingFee: Long,
+    val totalPrice: TotalPrice,
+    val items: List<OrderItemData>,
+) {
+    constructor(entity: OrderEntity, items: List<OrderItemEntity>) : this(
+        id = entity.id,
+        orderCode = entity.orderCode,
+        status = entity.status,
+        userId = entity.userId,
+        totalProductPrice = entity.totalProductPrice,
+        totalDiscountPrice = entity.totalDiscountPrice,
+        shippingFee = entity.shippingFee,
+        totalPrice = entity.totalPrice,
+        items = items.map { OrderItemData(it) },
+    )
+}

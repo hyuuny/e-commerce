@@ -1,6 +1,8 @@
 package com.hyuuny.ecommerce.core.api.v1.orders
 
 import com.hyuuny.ecommerce.core.api.v1.catalog.products.ProductReader
+import com.hyuuny.ecommerce.storage.db.core.response.SimplePage
+import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -26,5 +28,15 @@ class OrderService(
         val order = orderReader.read(id)
         val orderItems = orderItemReader.readAll(order.id)
         return OrderView(order, orderItems)
+    }
+
+    fun search(command: OrderSearchCommand, pageable: Pageable): SimplePage<OrderData> {
+        val page = orderReader.search(command, pageable)
+        val orderIds = page.content.map { it.id }
+        val orderGroup = orderItemReader.readAllByOrderIds(orderIds).groupBy { it.orderId }
+        return SimplePage(page.content.mapNotNull {
+            val items = orderGroup[it.id] ?: return@mapNotNull null
+            OrderData(it, items)
+        }, page)
     }
 }
