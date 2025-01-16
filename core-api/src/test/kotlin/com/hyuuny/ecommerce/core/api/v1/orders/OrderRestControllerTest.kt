@@ -5,9 +5,11 @@ import com.hyuuny.ecommerce.core.support.error.ErrorCode
 import com.hyuuny.ecommerce.core.support.error.ErrorType
 import com.hyuuny.ecommerce.core.support.response.ResultType
 import com.hyuuny.ecommerce.storage.db.core.catalog.products.*
+import com.hyuuny.ecommerce.storage.db.core.catalog.products.DiscountPrice
+import com.hyuuny.ecommerce.storage.db.core.catalog.products.Price
 import com.hyuuny.ecommerce.storage.db.core.catalog.products.ProductStatus.ON_SALE
-import com.hyuuny.ecommerce.storage.db.core.orders.OrderItemRepository
-import com.hyuuny.ecommerce.storage.db.core.orders.OrderRepository
+import com.hyuuny.ecommerce.storage.db.core.orders.*
+import com.hyuuny.ecommerce.storage.db.core.utils.CodeGenerator
 import io.restassured.RestAssured
 import io.restassured.http.ContentType
 import io.restassured.module.kotlin.extensions.Given
@@ -21,6 +23,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.boot.test.web.server.LocalServerPort
 import org.springframework.http.HttpHeaders
+import java.time.LocalDateTime
 
 class OrderRestControllerTest(
     @LocalServerPort val port: Int,
@@ -242,6 +245,94 @@ class OrderRestControllerTest(
             log().all()
         }
     }
+
+    @Test
+    fun `주문 내역 목록을 조회할 수 있다`() {
+        val orderEntities = repository.saveAll(
+            listOf(
+                generateOrderEntity(100000, 1000, 99000),
+                generateOrderEntity(100000, 2000, 98000),
+                generateOrderEntity(100000, 3000, 97000),
+                generateOrderEntity(100000, 4000, 96000),
+                generateOrderEntity(100000, 5000, 95000),
+                generateOrderEntity(100000, 6000, 94000),
+                generateOrderEntity(100000, 7000, 93000),
+                generateOrderEntity(100000, 8000, 92000),
+                generateOrderEntity(100000, 9000, 91000),
+                generateOrderEntity(100000, 10000, 90000),
+                generateOrderEntity(100000, 11000, 89000),
+                generateOrderEntity(100000, 12000, 88000),
+                generateOrderEntity(100000, 13000, 87000),
+            )
+        )
+        orderItemRepository.saveAll(orderEntities.map { order ->
+            OrderItemEntity(
+                orderId = order.id,
+                productId = 1,
+                productName = "product-1",
+                quantity = 1,
+                price = com.hyuuny.ecommerce.storage.db.core.orders.Price(order.totalProductPrice.totalProductAmount),
+                discountPrice = com.hyuuny.ecommerce.storage.db.core.orders.DiscountPrice(order.totalDiscountPrice.totalDiscountAmount),
+                totalPrice = TotalPrice(order.totalPrice.totalAmount)
+            )
+        })
+
+        orderEntities.sortByDescending { it.id }
+        Given {
+            contentType(ContentType.JSON)
+            header(HttpHeaders.AUTHORIZATION, generateJwtToken(DEFAULT_USER_EMAIL, DEFAULT_USER_PASSWORD))
+            param("page", 0)
+            param("size", 10)
+            param("sort", "id,desc")
+            param("userId", "1")
+        } When {
+            get("/api/v1/orders")
+        } Then {
+            statusCode(HttpStatus.SC_OK)
+            body("result", equalTo(ResultType.SUCCESS.name))
+            body("data.content.size()", equalTo(10))
+            orderEntities.take(10).forEachIndexed { index, order ->
+                body("data.content[$index].id", equalTo(order.id.toInt()))
+                body("data.content[$index].orderCode", equalTo(order.orderCode))
+                body("data.content[$index].status", equalTo(order.status.name))
+                body("data.content[$index].userId", equalTo(order.userId.toInt()))
+                body(
+                    "data.content[$index].totalProductAmount",
+                    equalTo(order.totalProductPrice.totalProductAmount.toInt())
+                )
+                body(
+                    "data.content[$index] .totalDiscountAmount",
+                    equalTo(order.totalDiscountPrice.totalDiscountAmount.toInt())
+                )
+                body("data.content[$index].shippingFee", equalTo(order.shippingFee.toInt()))
+                body("data.content[$index].totalAmount", equalTo(order.totalPrice.totalAmount.toInt()))
+                body("data.content[$index].items.size()", equalTo(1))
+            }
+            body("data.page", equalTo(1))
+            body("data.size", equalTo(10))
+            body("data.last", equalTo(false))
+            log().all()
+        }
+    }
+
+    private fun generateOrderEntity(totalProductPrice: Long, totalDiscountPrice: Long, totalPrice: Long) = OrderEntity(
+        orderCode = CodeGenerator.generateOrderCode(LocalDateTime.now()),
+        userId = 1,
+        orderer = Orderer(
+            name = "김성현",
+            phoneNumber = "01012341234"
+        ),
+        deliveryDetail = DeliveryDetail(
+            address = "서울시 구로구 123",
+            addressDetail = "3동 503호",
+            recipientName = "김성현",
+            message = "문앞 보관해주세요!"
+        ),
+        totalProductPrice = TotalProductPrice(totalProductPrice),
+        totalDiscountPrice = TotalDiscountPrice(totalDiscountPrice),
+        shippingFee = 3000L,
+        totalPrice = TotalPrice(totalPrice),
+    )
 
     private fun generateCheckoutRequest(checkoutItems: List<CheckoutItemRequestDto>): CheckoutRequestDto {
         val totalProductPrice = checkoutItems[0].amount + checkoutItems[1].amount
