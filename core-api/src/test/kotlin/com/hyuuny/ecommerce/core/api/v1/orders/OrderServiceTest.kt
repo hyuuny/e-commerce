@@ -7,6 +7,7 @@ import com.hyuuny.ecommerce.storage.db.core.catalog.products.ProductEntity
 import com.hyuuny.ecommerce.storage.db.core.catalog.products.ProductStatus.ON_SALE
 import com.hyuuny.ecommerce.storage.db.core.catalog.products.StockQuantity
 import com.hyuuny.ecommerce.storage.db.core.orders.*
+import com.hyuuny.ecommerce.storage.db.core.response.SimplePage
 import com.hyuuny.ecommerce.storage.db.core.utils.CodeGenerator
 import io.mockk.every
 import io.mockk.mockk
@@ -14,6 +15,8 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Sort
 import java.time.LocalDateTime
 
 class OrderServiceTest {
@@ -194,6 +197,68 @@ class OrderServiceTest {
         assertThat(exception.message).isEqualTo("order notFound")
         assertThat(exception.data).isEqualTo("주문을 찾을 수 없습니다. id: $invalidId")
     }
+
+    @Test
+    fun `주문 내역 목록을 조회할 수 있다`() {
+        val orderEntities = listOf(
+            generateOrderEntity(100000, 1000, 99000),
+            generateOrderEntity(100000, 2000, 98000),
+            generateOrderEntity(100000, 3000, 97000),
+            generateOrderEntity(100000, 4000, 96000),
+            generateOrderEntity(100000, 5000, 95000),
+            generateOrderEntity(100000, 6000, 94000),
+            generateOrderEntity(100000, 7000, 93000),
+            generateOrderEntity(100000, 8000, 92000),
+            generateOrderEntity(100000, 9000, 91000),
+            generateOrderEntity(100000, 10000, 90000),
+            generateOrderEntity(100000, 11000, 89000),
+            generateOrderEntity(100000, 12000, 88000),
+            generateOrderEntity(100000, 13000, 87000),
+        )
+        val orderItemEntities = orderEntities.map { order ->
+            OrderItemEntity(
+                orderId = order.id,
+                productId = 1,
+                productName = "product-1",
+                quantity = 1,
+                price = Price(order.totalProductPrice.totalProductAmount),
+                discountPrice = DiscountPrice(order.totalDiscountPrice.totalDiscountAmount),
+                totalPrice = TotalPrice(order.totalPrice.totalAmount)
+            )
+        }
+        every { reader.search(any(), any()) } returns SimplePage(orderEntities.subList(0, 10), 1, 10, false)
+        every { orderItemReader.readAllByOrderIds(any()) } returns orderItemEntities
+
+        val userId = 1L
+        val command = OrderSearchCommand(userId)
+        val search = service.search(command, PageRequest.of(0, 10, Sort.Direction.DESC, "id"))
+
+        assertThat(search.content).hasSize(10)
+        search.content.forEachIndexed { index, item ->
+            assertThat(item.totalProductPrice.totalProductAmount).isEqualTo(orderEntities[index].totalProductPrice.totalProductAmount)
+            assertThat(item.totalDiscountPrice.totalDiscountAmount).isEqualTo(orderEntities[index].totalDiscountPrice.totalDiscountAmount)
+            assertThat(item.totalPrice.totalAmount).isEqualTo(orderEntities[index].totalPrice.totalAmount)
+        }
+    }
+
+    private fun generateOrderEntity(totalProductPrice: Long, totalDiscountPrice: Long, totalPrice: Long) = OrderEntity(
+        orderCode = CodeGenerator.generateOrderCode(LocalDateTime.now()),
+        userId = 1,
+        orderer = Orderer(
+            name = "김성현",
+            phoneNumber = "01012341234"
+        ),
+        deliveryDetail = DeliveryDetail(
+            address = "서울시 구로구 123",
+            addressDetail = "3동 503호",
+            recipientName = "김성현",
+            message = "문앞 보관해주세요!"
+        ),
+        totalProductPrice = TotalProductPrice(totalProductPrice),
+        totalDiscountPrice = TotalDiscountPrice(totalDiscountPrice),
+        shippingFee = 3000L,
+        totalPrice = TotalPrice(totalPrice),
+    )
 
     private fun generateOrderEntity(command: Checkout) = OrderEntity(
         orderCode = CodeGenerator.generateOrderCode(LocalDateTime.now()),
