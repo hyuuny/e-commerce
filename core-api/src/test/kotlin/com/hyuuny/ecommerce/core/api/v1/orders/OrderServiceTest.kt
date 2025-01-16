@@ -27,8 +27,6 @@ class OrderServiceTest {
     private lateinit var productReader: ProductReader
     private lateinit var service: OrderService
 
-    private val tryLockTime = 10L
-
     @BeforeEach
     fun setUp() {
         writer = mockk()
@@ -78,6 +76,7 @@ class OrderServiceTest {
         assertThat(newOrder.items).hasSize(2)
         newOrder.items.forEachIndexed { index, item ->
             assertThat(item.orderId).isEqualTo(orderItemEntities[index].orderId)
+            assertThat(item.status).isEqualTo(orderItemEntities[index].status)
             assertThat(item.productName).isEqualTo(orderItemEntities[index].productName)
             assertThat(item.quantity).isEqualTo(orderItemEntities[index].quantity)
             assertThat(item.discountPrice).isEqualTo(orderItemEntities[index].discountPrice)
@@ -177,6 +176,7 @@ class OrderServiceTest {
         assertThat(order.items).hasSize(2)
         order.items.forEachIndexed { index, item ->
             assertThat(item.orderId).isEqualTo(orderItemEntities[index].orderId)
+            assertThat(item.status).isEqualTo(orderItemEntities[index].status)
             assertThat(item.productName).isEqualTo(orderItemEntities[index].productName)
             assertThat(item.quantity).isEqualTo(orderItemEntities[index].quantity)
             assertThat(item.discountPrice).isEqualTo(orderItemEntities[index].discountPrice)

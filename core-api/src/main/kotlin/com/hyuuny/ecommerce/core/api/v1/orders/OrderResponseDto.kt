@@ -1,5 +1,6 @@
 package com.hyuuny.ecommerce.core.api.v1.orders
 
+import com.hyuuny.ecommerce.storage.db.core.orders.OrderItemStatus
 import com.hyuuny.ecommerce.storage.db.core.orders.OrderStatus
 import java.time.LocalDateTime
 
@@ -55,6 +56,7 @@ data class DeliveryDetailResponseDto(
 
 data class OrderItemResponseDto(
     val id: Long,
+    val status: OrderItemStatus,
     val orderId: Long,
     val productId: Long,
     val productName: String,
@@ -65,6 +67,7 @@ data class OrderItemResponseDto(
 ) {
     constructor(orderItemData: OrderItemData) : this(
         id = orderItemData.id,
+        status = orderItemData.status,
         orderId = orderItemData.orderId,
         productId = orderItemData.productId,
         productName = orderItemData.productName,
