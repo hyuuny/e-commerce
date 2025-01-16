@@ -1,6 +1,10 @@
 package com.hyuuny.ecommerce.core.api.v1.orders
 
 import com.hyuuny.ecommerce.core.support.response.ApiResponse
+import com.hyuuny.ecommerce.storage.db.core.response.SimplePage
+import org.springframework.data.domain.Pageable
+import org.springframework.data.domain.Sort
+import org.springframework.data.web.PageableDefault
 import org.springframework.web.bind.annotation.*
 
 @RequestMapping("/api/v1/orders")
@@ -18,5 +22,14 @@ class OrderRestController(
     fun getOrder(@PathVariable id: Long): ApiResponse<OrderViewResponseDto> {
         val order = service.getOrder(id)
         return ApiResponse.success(OrderViewResponseDto(order))
+    }
+
+    @GetMapping
+    fun search(
+        request: OrderSearchRequestDto,
+        @PageableDefault(sort = ["id"], direction = Sort.Direction.DESC) pageable: Pageable
+    ): ApiResponse<SimplePage<OrderResponseDto>> {
+        val page = service.search(request.toCommand(), pageable)
+        return ApiResponse.success(SimplePage(page.content.map { OrderResponseDto(it) }, page))
     }
 }
