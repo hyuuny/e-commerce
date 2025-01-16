@@ -1,9 +1,7 @@
 package com.hyuuny.ecommerce.storage.db.core.orders
 
 import com.hyuuny.ecommerce.storage.db.core.BaseEntity
-import jakarta.persistence.Entity
-import jakarta.persistence.Index
-import jakarta.persistence.Table
+import jakarta.persistence.*
 
 @Table(
     name = "order_items",
@@ -11,6 +9,7 @@ import jakarta.persistence.Table
 )
 @Entity
 class OrderItemEntity(
+    status: OrderItemStatus = OrderItemStatus.CREATED,
     val orderId: Long,
     val productId: Long,
     val productName: String,
@@ -18,4 +17,8 @@ class OrderItemEntity(
     val discountPrice: DiscountPrice,
     val price: Price,
     val totalPrice: TotalPrice,
-) : BaseEntity()
+) : BaseEntity() {
+    @Enumerated(EnumType.STRING)
+    var status = status
+        protected set
+}

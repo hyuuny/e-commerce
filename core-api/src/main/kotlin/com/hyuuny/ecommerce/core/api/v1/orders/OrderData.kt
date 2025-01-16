@@ -55,6 +55,7 @@ data class DeliveryDetailData(
 
 data class OrderItemData(
     val id: Long,
+    val status: OrderItemStatus,
     val orderId: Long,
     val productId: Long,
     val productName: String,
@@ -65,6 +66,7 @@ data class OrderItemData(
 ) {
     constructor(orderItemEntity: OrderItemEntity) : this(
         id = orderItemEntity.id,
+        status = orderItemEntity.status,
         orderId = orderItemEntity.orderId,
         productId = orderItemEntity.productId,
         productName = orderItemEntity.productName,
