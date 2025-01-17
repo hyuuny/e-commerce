@@ -9,6 +9,7 @@ import com.hyuuny.ecommerce.storage.db.core.catalog.products.DiscountPrice
 import com.hyuuny.ecommerce.storage.db.core.catalog.products.Price
 import com.hyuuny.ecommerce.storage.db.core.catalog.products.ProductStatus.ON_SALE
 import com.hyuuny.ecommerce.storage.db.core.orders.*
+import com.hyuuny.ecommerce.storage.db.core.orders.OrderStatus.COMPLETED_PAYMENT
 import com.hyuuny.ecommerce.storage.db.core.utils.CodeGenerator
 import io.restassured.RestAssured
 import io.restassured.http.ContentType
@@ -321,8 +322,43 @@ class OrderRestControllerTest(
         }
     }
 
-    private fun generateOrderEntity(totalProductPrice: Long, totalDiscountPrice: Long, totalPrice: Long) = OrderEntity(
+    @Test
+    fun `주문 상품을 구매 확정 할 수 있다`() {
+        val orderEntity = repository.save(generateOrderEntity(100000, 1000, 99000, COMPLETED_PAYMENT))
+        val orderItemEntity = orderItemRepository.save(
+            OrderItemEntity(
+                status = OrderItemStatus.IN_SHIPPING,
+                orderId = orderEntity.id,
+                productId = 1,
+                productName = "product",
+                quantity = 1,
+                discountPrice = com.hyuuny.ecommerce.storage.db.core.orders.DiscountPrice(1000),
+                price = com.hyuuny.ecommerce.storage.db.core.orders.Price(20000),
+                totalPrice = TotalPrice(19000),
+            )
+        )
+
+        Given {
+            contentType(ContentType.JSON)
+            header(HttpHeaders.AUTHORIZATION, generateJwtToken(DEFAULT_USER_EMAIL, DEFAULT_USER_PASSWORD))
+            log().all()
+        } When {
+            post("/api/v1/orders/${orderEntity.id}/order-item/${orderItemEntity.id}/confirm")
+        } Then {
+            statusCode(HttpStatus.SC_OK)
+            body("result", equalTo(ResultType.SUCCESS.name))
+            log().all()
+        }
+    }
+
+    private fun generateOrderEntity(
+        totalProductPrice: Long,
+        totalDiscountPrice: Long,
+        totalPrice: Long,
+        status: OrderStatus = OrderStatus.BEFORE_PAYMENT,
+    ) = OrderEntity(
         orderCode = CodeGenerator.generateOrderCode(LocalDateTime.now()),
+        status = status,
         userId = 1,
         orderer = Orderer(
             name = "김성현",
