@@ -1,4 +1,4 @@
-package com.hyuuny.ecommerce.core.api.v1.config
+package com.hyuuny.ecommerce.core.api.config
 
 import com.p6spy.engine.logging.Category
 import com.p6spy.engine.spy.P6SpyOptions
