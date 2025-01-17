@@ -351,6 +351,39 @@ class OrderRestControllerTest(
         }
     }
 
+
+    @Test
+    fun `이미 취소한 주문 상품을 다시 구매 확정 할 수 없다`() {
+        val orderEntity = repository.save(generateOrderEntity(100000, 1000, 99000, COMPLETED_PAYMENT))
+        val orderItemEntity = orderItemRepository.save(
+            OrderItemEntity(
+                status = OrderItemStatus.CANCELED,
+                orderId = orderEntity.id,
+                productId = 1,
+                productName = "product",
+                quantity = 1,
+                discountPrice = com.hyuuny.ecommerce.storage.db.core.orders.DiscountPrice(1000),
+                price = com.hyuuny.ecommerce.storage.db.core.orders.Price(20000),
+                totalPrice = TotalPrice(19000),
+            )
+        )
+
+        Given {
+            contentType(ContentType.JSON)
+            header(HttpHeaders.AUTHORIZATION, generateJwtToken(DEFAULT_USER_EMAIL, DEFAULT_USER_PASSWORD))
+            log().all()
+        } When {
+            post("/api/v1/orders/${orderEntity.id}/order-item/${orderItemEntity.id}/confirm")
+        } Then {
+            statusCode(HttpStatus.SC_BAD_REQUEST)
+            body("result", equalTo(ResultType.ERROR.name))
+            body("error.code", equalTo(ErrorCode.E400.name))
+            body("error.message", equalTo(ErrorType.ALREADY_CANCELED_ORDER_ITEM.message))
+            body("error.data", equalTo("이미 취소된 주문 상품입니다."))
+            log().all()
+        }
+    }
+
     private fun generateOrderEntity(
         totalProductPrice: Long,
         totalDiscountPrice: Long,
