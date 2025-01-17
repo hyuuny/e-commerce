@@ -141,7 +141,7 @@ class OrderRestControllerTest(
             body("result", equalTo("ERROR"))
             body("data", equalTo(null))
             body("error.code", equalTo(ErrorCode.E400.name))
-            body("error.message", equalTo(ErrorType.INSUFFICIENT_STOCK_EXCEPTION.message))
+            body("error.message", equalTo(ErrorType.INSUFFICIENT_STOCK.message))
             body("error.data", equalTo("상품 재고가 부족합니다. id: ${productEntity.id}"))
             log().all()
         }
@@ -246,7 +246,7 @@ class OrderRestControllerTest(
             body("result", equalTo(ResultType.ERROR.name))
             body("data", equalTo(null))
             body("error.code", equalTo(ErrorCode.E404.name))
-            body("error.message", equalTo(ErrorType.ORDER_NOT_FOUND_EXCEPTION.message))
+            body("error.message", equalTo(ErrorType.ORDER_NOT_FOUND.message))
             body("error.data", equalTo("주문을 찾을 수 없습니다. id: $INVALID_ID"))
             log().all()
         }

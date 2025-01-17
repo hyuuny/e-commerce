@@ -27,8 +27,8 @@ class ApiControllerAdvice {
     fun handleInvalidAuthenticationException(e: AuthenticationException): ResponseEntity<ApiResponse<Any>> {
         log.error("InvalidAuthenticationException : {}", e.message, e)
         return ResponseEntity(
-            ApiResponse.error(ErrorType.INVALID_AUTHENTICATION_EXCEPTION),
-            ErrorType.INVALID_AUTHENTICATION_EXCEPTION.status
+            ApiResponse.error(ErrorType.INVALID_AUTHENTICATION),
+            ErrorType.INVALID_AUTHENTICATION.status
         )
     }
 

@@ -79,7 +79,7 @@ class UserRestControllerTest(
             body("result", equalTo("ERROR"))
             body("data", equalTo(null))
             body("error.code", equalTo(ErrorCode.E400.name))
-            body("error.message", equalTo(ErrorType.DUPLICATE_EMAIL_EXCEPTION.message))
+            body("error.message", equalTo(ErrorType.DUPLICATE_EMAIL.message))
             body("error.data", equalTo("이미 존재하는 email입니다."))
             log().all()
         }
@@ -121,7 +121,7 @@ class UserRestControllerTest(
             body("result", equalTo("ERROR"))
             body("data", equalTo(null))
             body("error.code", equalTo(ErrorCode.E404.name))
-            body("error.message", equalTo(ErrorType.USER_NOT_FOUND_EXCEPTION.message))
+            body("error.message", equalTo(ErrorType.USER_NOT_FOUND.message))
             body("error.data", equalTo("회원을 찾을 수 없습니다. id: $invalidId"))
             log().all()
         }

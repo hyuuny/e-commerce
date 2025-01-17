@@ -1,20 +1,22 @@
 package com.hyuuny.ecommerce.core.api.v1.orders
 
 import com.hyuuny.ecommerce.core.api.v1.catalog.products.ProductReader
-import com.hyuuny.ecommerce.core.support.error.InsufficientStockException
-import com.hyuuny.ecommerce.core.support.error.OrderNotFoundException
+import com.hyuuny.ecommerce.core.support.error.*
 import com.hyuuny.ecommerce.storage.db.core.catalog.products.ProductEntity
 import com.hyuuny.ecommerce.storage.db.core.catalog.products.ProductStatus.ON_SALE
 import com.hyuuny.ecommerce.storage.db.core.catalog.products.StockQuantity
 import com.hyuuny.ecommerce.storage.db.core.orders.*
+import com.hyuuny.ecommerce.storage.db.core.orders.OrderStatus.BEFORE_PAYMENT
+import com.hyuuny.ecommerce.storage.db.core.orders.OrderStatus.COMPLETED_PAYMENT
 import com.hyuuny.ecommerce.storage.db.core.response.SimplePage
 import com.hyuuny.ecommerce.storage.db.core.utils.CodeGenerator
-import io.mockk.every
-import io.mockk.mockk
+import io.mockk.*
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.CsvSource
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
 import java.time.LocalDateTime
@@ -241,8 +243,112 @@ class OrderServiceTest {
         }
     }
 
-    private fun generateOrderEntity(totalProductPrice: Long, totalDiscountPrice: Long, totalPrice: Long) = OrderEntity(
+    @Test
+    fun `주문 상품을 구매 확정 할 수 있다`() {
+        val orderEntity = generateOrderEntity(100000, 1000, 99000, status = COMPLETED_PAYMENT)
+        val orderItemEntity = OrderItemEntity(
+            status = OrderItemStatus.COMPLETED_SHIPPING,
+            orderId = orderEntity.id,
+            productId = 1,
+            productName = "product",
+            quantity = 1,
+            discountPrice = DiscountPrice(1000),
+            price = Price(20000),
+            totalPrice = TotalPrice(19000),
+        )
+        every { reader.read(any()) } returns orderEntity
+        every { orderItemReader.read(any(), any()) } returns orderItemEntity
+        every { orderItemWriter.confirmPurchase(any()) } just Runs
+
+        service.confirmPurchase(orderEntity.id, orderItemEntity.id)
+
+        verify { orderItemWriter.confirmPurchase(any()) }
+    }
+
+    @Test
+    fun `이미 취소한 주문 상품을 다시 구매 확정 할 수 없다`() {
+        val orderEntity = generateOrderEntity(100000, 1000, 99000, status = COMPLETED_PAYMENT)
+        val orderItemEntity = OrderItemEntity(
+            status = OrderItemStatus.CANCELED,
+            orderId = orderEntity.id,
+            productId = 1,
+            productName = "product",
+            quantity = 1,
+            discountPrice = DiscountPrice(1000),
+            price = Price(20000),
+            totalPrice = TotalPrice(19000),
+        )
+        every { reader.read(any()) } returns orderEntity
+        every { orderItemReader.read(any(), any()) } returns orderItemEntity
+        every { orderItemWriter.confirmPurchase(any()) } throws AlreadyCanceledOrderException()
+
+        val exception = assertThrows<AlreadyCanceledOrderException> {
+            service.confirmPurchase(orderEntity.id, orderItemEntity.id)
+        }
+
+        assertThat(exception.message).isEqualTo("already canceled orderItem")
+        assertThat(exception.data).isEqualTo("이미 취소된 주문 상품입니다.")
+    }
+
+    @Test
+    fun `이미 구매 확정된 주문 상품은 다시 구매 확정 할 수 없다`() {
+        val orderEntity = generateOrderEntity(100000, 1000, 99000, status = COMPLETED_PAYMENT)
+        val orderItemEntity = OrderItemEntity(
+            status = OrderItemStatus.CONFIRM_PURCHASE,
+            orderId = orderEntity.id,
+            productId = 1,
+            productName = "product",
+            quantity = 1,
+            discountPrice = DiscountPrice(1000),
+            price = Price(20000),
+            totalPrice = TotalPrice(19000),
+        )
+        every { reader.read(any()) } returns orderEntity
+        every { orderItemReader.read(any(), any()) } returns orderItemEntity
+        every { orderItemWriter.confirmPurchase(any()) } throws AlreadyConfirmedPurchaseException()
+
+        val exception = assertThrows<AlreadyConfirmedPurchaseException> {
+            service.confirmPurchase(orderEntity.id, orderItemEntity.id)
+        }
+
+        assertThat(exception.message).isEqualTo("already confirmedPurchase")
+        assertThat(exception.data).isEqualTo("이미 구매 확정된 주문 상품입니다.")
+    }
+
+    @CsvSource("CREATED", "PREPARING_DELIVERY", "CONFIRM_PURCHASE", "CANCELED")
+    @ParameterizedTest
+    fun `확정이 불가능한 주문 아이템 상태는 구매를 확정할 수 없다`(status: OrderItemStatus) {
+        val orderEntity = generateOrderEntity(100000, 1000, 99000, COMPLETED_PAYMENT)
+        val orderItemEntity = OrderItemEntity(
+            status = status,
+            orderId = orderEntity.id,
+            productId = 1,
+            productName = "product",
+            quantity = 1,
+            discountPrice = DiscountPrice(1000),
+            price = Price(20000),
+            totalPrice = TotalPrice(19000),
+        )
+        every { reader.read(any()) } returns orderEntity
+        every { orderItemReader.read(any(), any()) } returns orderItemEntity
+        every { orderItemWriter.confirmPurchase(any()) } throws InvalidConfirmPurchaseException("구매 확정 가능한 상태가 아닙니다. status: $status")
+
+        val exception = assertThrows<InvalidConfirmPurchaseException> {
+            service.confirmPurchase(orderEntity.id, orderItemEntity.id)
+        }
+
+        assertThat(exception.message).isEqualTo("invalid confirmPurchase")
+        assertThat(exception.data).isEqualTo("구매 확정 가능한 상태가 아닙니다. status: $status")
+    }
+
+    private fun generateOrderEntity(
+        totalProductPrice: Long,
+        totalDiscountPrice: Long,
+        totalPrice: Long,
+        status: OrderStatus = BEFORE_PAYMENT,
+    ) = OrderEntity(
         orderCode = CodeGenerator.generateOrderCode(LocalDateTime.now()),
+        status = status,
         userId = 1,
         orderer = Orderer(
             name = "김성현",
