@@ -69,7 +69,7 @@ class AuthRestControllerTest(
             body("result", equalTo("ERROR"))
             body("data", equalTo(null))
             body("error.code", equalTo(ErrorCode.E401.name))
-            body("error.message", equalTo(ErrorType.INVALID_AUTHENTICATION_EXCEPTION.message))
+            body("error.message", equalTo(ErrorType.INVALID_AUTHENTICATION.message))
             body("error.data", equalTo(null))
             log().all()
         }

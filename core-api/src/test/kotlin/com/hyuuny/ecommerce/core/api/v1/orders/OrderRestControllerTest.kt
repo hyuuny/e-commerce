@@ -9,6 +9,7 @@ import com.hyuuny.ecommerce.storage.db.core.catalog.products.DiscountPrice
 import com.hyuuny.ecommerce.storage.db.core.catalog.products.Price
 import com.hyuuny.ecommerce.storage.db.core.catalog.products.ProductStatus.ON_SALE
 import com.hyuuny.ecommerce.storage.db.core.orders.*
+import com.hyuuny.ecommerce.storage.db.core.orders.OrderStatus.COMPLETED_PAYMENT
 import com.hyuuny.ecommerce.storage.db.core.utils.CodeGenerator
 import io.restassured.RestAssured
 import io.restassured.http.ContentType
@@ -21,6 +22,8 @@ import org.hamcrest.CoreMatchers.notNullValue
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.CsvSource
 import org.springframework.boot.test.web.server.LocalServerPort
 import org.springframework.http.HttpHeaders
 import java.time.LocalDateTime
@@ -141,7 +144,7 @@ class OrderRestControllerTest(
             body("result", equalTo("ERROR"))
             body("data", equalTo(null))
             body("error.code", equalTo(ErrorCode.E400.name))
-            body("error.message", equalTo(ErrorType.INSUFFICIENT_STOCK_EXCEPTION.message))
+            body("error.message", equalTo(ErrorType.INSUFFICIENT_STOCK.message))
             body("error.data", equalTo("상품 재고가 부족합니다. id: ${productEntity.id}"))
             log().all()
         }
@@ -246,7 +249,7 @@ class OrderRestControllerTest(
             body("result", equalTo(ResultType.ERROR.name))
             body("data", equalTo(null))
             body("error.code", equalTo(ErrorCode.E404.name))
-            body("error.message", equalTo(ErrorType.ORDER_NOT_FOUND_EXCEPTION.message))
+            body("error.message", equalTo(ErrorType.ORDER_NOT_FOUND.message))
             body("error.data", equalTo("주문을 찾을 수 없습니다. id: $INVALID_ID"))
             log().all()
         }
@@ -321,8 +324,174 @@ class OrderRestControllerTest(
         }
     }
 
-    private fun generateOrderEntity(totalProductPrice: Long, totalDiscountPrice: Long, totalPrice: Long) = OrderEntity(
+    @Test
+    fun `주문 상품을 구매 확정 할 수 있다`() {
+        val orderEntity = repository.save(generateOrderEntity(100000, 1000, 99000, COMPLETED_PAYMENT))
+        val orderItemEntity = orderItemRepository.save(
+            OrderItemEntity(
+                status = OrderItemStatus.IN_SHIPPING,
+                orderId = orderEntity.id,
+                productId = 1,
+                productName = "product",
+                quantity = 1,
+                discountPrice = com.hyuuny.ecommerce.storage.db.core.orders.DiscountPrice(1000),
+                price = com.hyuuny.ecommerce.storage.db.core.orders.Price(20000),
+                totalPrice = TotalPrice(19000),
+            )
+        )
+
+        Given {
+            contentType(ContentType.JSON)
+            header(HttpHeaders.AUTHORIZATION, generateJwtToken(DEFAULT_USER_EMAIL, DEFAULT_USER_PASSWORD))
+            log().all()
+        } When {
+            post("/api/v1/orders/${orderEntity.id}/order-item/${orderItemEntity.id}/confirm")
+        } Then {
+            statusCode(HttpStatus.SC_OK)
+            body("result", equalTo(ResultType.SUCCESS.name))
+            log().all()
+        }
+    }
+
+    @Test
+    fun `이미 취소한 주문 상품을 다시 구매 확정 할 수 없다`() {
+        val orderEntity = repository.save(generateOrderEntity(100000, 1000, 99000, COMPLETED_PAYMENT))
+        val orderItemEntity = orderItemRepository.save(
+            OrderItemEntity(
+                status = OrderItemStatus.CANCELED,
+                orderId = orderEntity.id,
+                productId = 1,
+                productName = "product",
+                quantity = 1,
+                discountPrice = com.hyuuny.ecommerce.storage.db.core.orders.DiscountPrice(1000),
+                price = com.hyuuny.ecommerce.storage.db.core.orders.Price(20000),
+                totalPrice = TotalPrice(19000),
+            )
+        )
+
+        Given {
+            contentType(ContentType.JSON)
+            header(HttpHeaders.AUTHORIZATION, generateJwtToken(DEFAULT_USER_EMAIL, DEFAULT_USER_PASSWORD))
+            log().all()
+        } When {
+            post("/api/v1/orders/${orderEntity.id}/order-item/${orderItemEntity.id}/confirm")
+        } Then {
+            statusCode(HttpStatus.SC_BAD_REQUEST)
+            body("result", equalTo(ResultType.ERROR.name))
+            body("error.code", equalTo(ErrorCode.E400.name))
+            body("error.message", equalTo(ErrorType.ALREADY_CANCELED_ORDER_ITEM.message))
+            body("error.data", equalTo("이미 취소된 주문 상품입니다."))
+            log().all()
+        }
+    }
+
+
+    @Test
+    fun `이미 구매 확정된 주문 상품은 다시 구매 확정 할 수 없다`() {
+        val orderEntity = repository.save(generateOrderEntity(100000, 1000, 99000, COMPLETED_PAYMENT))
+        val orderItemEntity = orderItemRepository.save(
+            OrderItemEntity(
+                status = OrderItemStatus.CONFIRM_PURCHASE,
+                orderId = orderEntity.id,
+                productId = 1,
+                productName = "product",
+                quantity = 1,
+                discountPrice = com.hyuuny.ecommerce.storage.db.core.orders.DiscountPrice(1000),
+                price = com.hyuuny.ecommerce.storage.db.core.orders.Price(20000),
+                totalPrice = TotalPrice(19000),
+            )
+        )
+
+        Given {
+            contentType(ContentType.JSON)
+            header(HttpHeaders.AUTHORIZATION, generateJwtToken(DEFAULT_USER_EMAIL, DEFAULT_USER_PASSWORD))
+            log().all()
+        } When {
+            post("/api/v1/orders/${orderEntity.id}/order-item/${orderItemEntity.id}/confirm")
+        } Then {
+            statusCode(HttpStatus.SC_BAD_REQUEST)
+            body("result", equalTo(ResultType.ERROR.name))
+            body("error.code", equalTo(ErrorCode.E400.name))
+            body("error.message", equalTo(ErrorType.ALREADY_CONFIRMED_PURCHASE.message))
+            body("error.data", equalTo("이미 구매 확정된 주문 상품입니다."))
+            log().all()
+        }
+    }
+
+
+    @Test
+    fun `이미 구매 확정된 주문 상품은 다시 구매 확정 할 수 없다`() {
+        val orderEntity = repository.save(generateOrderEntity(100000, 1000, 99000, COMPLETED_PAYMENT))
+        val orderItemEntity = orderItemRepository.save(
+            OrderItemEntity(
+                status = OrderItemStatus.CONFIRM_PURCHASE,
+                orderId = orderEntity.id,
+                productId = 1,
+                productName = "product",
+                quantity = 1,
+                discountPrice = com.hyuuny.ecommerce.storage.db.core.orders.DiscountPrice(1000),
+                price = com.hyuuny.ecommerce.storage.db.core.orders.Price(20000),
+                totalPrice = TotalPrice(19000),
+            )
+        )
+
+        Given {
+            contentType(ContentType.JSON)
+            header(HttpHeaders.AUTHORIZATION, generateJwtToken(DEFAULT_USER_EMAIL, DEFAULT_USER_PASSWORD))
+            log().all()
+        } When {
+            post("/api/v1/orders/${orderEntity.id}/order-item/${orderItemEntity.id}/confirm")
+        } Then {
+            statusCode(HttpStatus.SC_BAD_REQUEST)
+            body("result", equalTo(ResultType.ERROR.name))
+            body("error.code", equalTo(ErrorCode.E400.name))
+            body("error.message", equalTo(ErrorType.ALREADY_CONFIRMED_PURCHASE.message))
+            body("error.data", equalTo("이미 구매 확정된 주문 상품입니다."))
+            log().all()
+        }
+    }
+
+    @CsvSource("CREATED", "PREPARING_DELIVERY")
+    @ParameterizedTest
+    fun `확정이 불가능한 주문 아이템 상태는 구매를 확정할 수 없다`(status: OrderItemStatus) {
+        val orderEntity = repository.save(generateOrderEntity(100000, 1000, 99000, COMPLETED_PAYMENT))
+        val orderItemEntity = orderItemRepository.save(
+            OrderItemEntity(
+                status = status,
+                orderId = orderEntity.id,
+                productId = 1,
+                productName = "product",
+                quantity = 1,
+                discountPrice = com.hyuuny.ecommerce.storage.db.core.orders.DiscountPrice(1000),
+                price = com.hyuuny.ecommerce.storage.db.core.orders.Price(20000),
+                totalPrice = TotalPrice(19000),
+            )
+        )
+
+        Given {
+            contentType(ContentType.JSON)
+            header(HttpHeaders.AUTHORIZATION, generateJwtToken(DEFAULT_USER_EMAIL, DEFAULT_USER_PASSWORD))
+            log().all()
+        } When {
+            post("/api/v1/orders/${orderEntity.id}/order-item/${orderItemEntity.id}/confirm")
+        } Then {
+            statusCode(HttpStatus.SC_BAD_REQUEST)
+            body("result", equalTo(ResultType.ERROR.name))
+            body("error.code", equalTo(ErrorCode.E400.name))
+            body("error.message", equalTo(ErrorType.INVALID_CONFIRM_PURCHASE.message))
+            body("error.data", equalTo("구매 확정 가능한 상태가 아닙니다. status: $status"))
+            log().all()
+        }
+    }
+
+    private fun generateOrderEntity(
+        totalProductPrice: Long,
+        totalDiscountPrice: Long,
+        totalPrice: Long,
+        status: OrderStatus = OrderStatus.BEFORE_PAYMENT,
+    ) = OrderEntity(
         orderCode = CodeGenerator.generateOrderCode(LocalDateTime.now()),
+        status = status,
         userId = 1,
         orderer = Orderer(
             name = "김성현",

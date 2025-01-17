@@ -39,4 +39,11 @@ class OrderService(
             OrderData(it, items)
         }, page)
     }
+
+    @Transactional
+    fun confirmPurchase(orderId: Long, orderItemId: Long) {
+        val order = orderReader.read(orderId)
+        val orderItem = orderItemReader.read(orderItemId, order.id)
+        orderItemWriter.confirmPurchase(orderItem)
+    }
 }

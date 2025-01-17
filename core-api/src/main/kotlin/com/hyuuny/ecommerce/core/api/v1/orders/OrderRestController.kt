@@ -32,4 +32,10 @@ class OrderRestController(
         val page = service.search(request.toCommand(), pageable)
         return ApiResponse.success(SimplePage(page.content.map { OrderResponseDto(it) }, page))
     }
+
+    @PostMapping("/{id}/order-item/{orderItemId}/confirm")
+    fun confirmPurchase(@PathVariable id: Long, @PathVariable orderItemId: Long): ApiResponse<Any> {
+        service.confirmPurchase(id, orderItemId)
+        return ApiResponse.success()
+    }
 }

@@ -21,4 +21,14 @@ class OrderItemEntity(
     @Enumerated(EnumType.STRING)
     var status = status
         protected set
+
+    fun isCanceled(): Boolean = this.status == OrderItemStatus.CANCELED
+
+    fun isConfirmedPurchase(): Boolean = this.status == OrderItemStatus.CONFIRM_PURCHASE
+
+    fun satisfyConfirmPurchase(): Boolean = status.satisfyConfirmPurchase()
+
+    fun confirmPurchase() {
+        status = OrderItemStatus.CONFIRM_PURCHASE
+    }
 }

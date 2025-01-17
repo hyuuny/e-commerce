@@ -116,7 +116,7 @@ class CategoryRestControllerTest(
             body("result", equalTo(ResultType.ERROR.name))
             body("data", equalTo(null))
             body("error.code", equalTo(ErrorCode.E404.name))
-            body("error.message", equalTo(ErrorType.CATEGORY_NOT_FOUND_EXCEPTION.message))
+            body("error.message", equalTo(ErrorType.CATEGORY_NOT_FOUND.message))
             body("error.data", equalTo("카테고리를 찾을 수 없습니다. id: $invalidId"))
             log().all()
         }
