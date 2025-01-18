@@ -73,3 +73,7 @@ data class OrderSearchCommand(
         toDate = toDate,
     )
 }
+
+data class OrderItemCancelEvent(
+    val orderId: Long,
+)

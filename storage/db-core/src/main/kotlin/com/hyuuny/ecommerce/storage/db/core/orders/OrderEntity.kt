@@ -19,4 +19,12 @@ class OrderEntity(
     @Enumerated(EnumType.STRING)
     var status = status
         protected set
+
+    fun allCanceled() {
+        this.status = OrderStatus.ALL_CANCELED
+    }
+
+    fun partialCanceled() {
+        this.status = OrderStatus.PARTIAL_CANCELED
+    }
 }

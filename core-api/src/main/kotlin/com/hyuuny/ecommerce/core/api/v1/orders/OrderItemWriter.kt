@@ -29,6 +29,14 @@ class OrderItemWriter(
         orderItem.confirmPurchase()
     }
 
+    fun cancel(orderItem: OrderItemEntity) {
+        if (orderItem.isCanceled()) throw AlreadyCanceledOrderException()
+        if (!orderItem.satisfyCancel()) {
+            throw InvalidCancelOrderItemException("취소 가능한 상태가 아닙니다. status: ${orderItem.status}")
+        }
+        orderItem.cancel()
+    }
+
     private fun toOrderItemEntity(item: CheckoutItem, order: OrderEntity, product: ProductEntity): OrderItemEntity {
         if (product.isInsufficientStock(item.quantity)) {
             throw InsufficientStockException("상품 재고가 부족합니다. id: ${product.id}")

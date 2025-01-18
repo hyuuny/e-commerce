@@ -17,4 +17,5 @@ enum class ErrorType(val status: HttpStatus, val code: ErrorCode, val message: S
     ALREADY_CANCELED_ORDER_ITEM(HttpStatus.BAD_REQUEST, ErrorCode.E400, "already canceled orderItem", LogLevel.ERROR),
     ALREADY_CONFIRMED_PURCHASE(HttpStatus.BAD_REQUEST, ErrorCode.E400, "already confirmedPurchase", LogLevel.ERROR),
     INVALID_CONFIRM_PURCHASE(HttpStatus.BAD_REQUEST, ErrorCode.E400, "invalid confirmPurchase", LogLevel.ERROR),
+    INVALID_CANCEL_ORDER_ITEM(HttpStatus.BAD_REQUEST, ErrorCode.E400, "invalid cancelOrderItem", LogLevel.ERROR),
 }
