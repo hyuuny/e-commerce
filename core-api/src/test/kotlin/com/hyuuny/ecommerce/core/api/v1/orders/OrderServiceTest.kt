@@ -419,6 +419,32 @@ class OrderServiceTest {
         assertThat(exception.data).isEqualTo("이미 취소된 주문 상품입니다.")
     }
 
+    @CsvSource("IN_SHIPPING", "COMPLETED_SHIPPING", "CONFIRM_PURCHASE")
+    @ParameterizedTest
+    fun `취소가 불가능한 주문 아이템 상태는 취소 할 수 없다`(status: OrderItemStatus) {
+        val orderEntity = generateOrderEntity(100000, 1000, 99000, COMPLETED_PAYMENT)
+        val orderItemEntity = OrderItemEntity(
+            status = status,
+            orderId = orderEntity.id,
+            productId = 1,
+            productName = "product",
+            quantity = 1,
+            discountPrice = DiscountPrice(1000),
+            price = Price(20000),
+            totalPrice = TotalPrice(19000),
+        )
+        every { reader.read(any()) } returns orderEntity
+        every { orderItemReader.read(any(), any()) } returns orderItemEntity
+        every { orderItemWriter.cancel(any()) } throws InvalidCancelOrderItemException("취소 가능한 상태가 아닙니다. status: $status")
+
+        val exception = assertThrows<InvalidCancelOrderItemException> {
+            service.cancel(orderEntity.id, orderItemEntity.id)
+        }
+
+        assertThat(exception.message).isEqualTo("invalid cancelOrderItem")
+        assertThat(exception.data).isEqualTo("취소 가능한 상태가 아닙니다. status: $status")
+    }
+
     private fun generateOrderEntity(command: Checkout) = OrderEntity(
         orderCode = CodeGenerator.generateOrderCode(LocalDateTime.now()),
         userId = 1,
