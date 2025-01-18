@@ -46,3 +46,7 @@ class AlreadyConfirmedPurchaseException :
 class InvalidConfirmPurchaseException(
     data: Any? = null,
 ) : CoreException(ErrorType.INVALID_CONFIRM_PURCHASE, data)
+
+class InvalidCancelOrderItemException(
+    data: Any? = null,
+) : CoreException(ErrorType.INVALID_CANCEL_ORDER_ITEM, data)

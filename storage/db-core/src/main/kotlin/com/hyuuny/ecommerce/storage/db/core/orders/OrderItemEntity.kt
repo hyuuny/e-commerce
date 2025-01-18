@@ -28,7 +28,13 @@ class OrderItemEntity(
 
     fun satisfyConfirmPurchase(): Boolean = status.satisfyConfirmPurchase()
 
+    fun satisfyCancel(): Boolean = status.satisfyCancel()
+
     fun confirmPurchase() {
         status = OrderItemStatus.CONFIRM_PURCHASE
+    }
+
+    fun cancel() {
+        status = OrderItemStatus.CANCELED
     }
 }
