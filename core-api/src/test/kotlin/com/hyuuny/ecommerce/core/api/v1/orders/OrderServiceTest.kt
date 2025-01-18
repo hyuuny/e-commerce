@@ -17,6 +17,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
 import java.time.LocalDateTime
@@ -28,6 +29,7 @@ class OrderServiceTest {
     private lateinit var orderItemReader: OrderItemReader
     private lateinit var productReader: ProductReader
     private lateinit var service: OrderService
+    private lateinit var eventPublisher: ApplicationEventPublisher
 
     @BeforeEach
     fun setUp() {
@@ -36,7 +38,8 @@ class OrderServiceTest {
         reader = mockk()
         orderItemReader = mockk()
         productReader = mockk()
-        service = OrderService(writer, orderItemWriter, reader, orderItemReader, productReader)
+        eventPublisher = mockk()
+        service = OrderService(writer, orderItemWriter, reader, orderItemReader, productReader, eventPublisher)
     }
 
     @Test
@@ -339,6 +342,30 @@ class OrderServiceTest {
 
         assertThat(exception.message).isEqualTo("invalid confirmPurchase")
         assertThat(exception.data).isEqualTo("구매 확정 가능한 상태가 아닙니다. status: $status")
+    }
+
+    @Test
+    fun `주문 상품을 취소할 수 있다`() {
+        val orderEntity = generateOrderEntity(100000, 1000, 99000, status = COMPLETED_PAYMENT)
+        val orderItemEntity = OrderItemEntity(
+            status = OrderItemStatus.PREPARING_DELIVERY,
+            orderId = orderEntity.id,
+            productId = 1,
+            productName = "product",
+            quantity = 1,
+            discountPrice = DiscountPrice(1000),
+            price = Price(20000),
+            totalPrice = TotalPrice(19000),
+        )
+        every { reader.read(any()) } returns orderEntity
+        every { orderItemReader.read(any(), any()) } returns orderItemEntity
+        every { orderItemWriter.cancel(any()) } just Runs
+        every { eventPublisher.publishEvent(ofType<OrderItemCancelEvent>()) } just Runs
+
+        service.cancel(orderEntity.id, orderItemEntity.id)
+
+        verify { orderItemWriter.cancel(any()) }
+        verify(exactly = 1) { eventPublisher.publishEvent(ofType<OrderItemCancelEvent>()) }
     }
 
     private fun generateOrderEntity(
