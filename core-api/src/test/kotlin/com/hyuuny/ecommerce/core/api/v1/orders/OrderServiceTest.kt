@@ -393,6 +393,32 @@ class OrderServiceTest {
         totalPrice = TotalPrice(totalPrice),
     )
 
+
+    @Test
+    fun `이미 취소된 주문 상품을 취소 할 수 없다`() {
+        val orderEntity = generateOrderEntity(100000, 1000, 99000, status = COMPLETED_PAYMENT)
+        val orderItemEntity = OrderItemEntity(
+            status = OrderItemStatus.CANCELED,
+            orderId = orderEntity.id,
+            productId = 1,
+            productName = "product",
+            quantity = 1,
+            discountPrice = DiscountPrice(1000),
+            price = Price(20000),
+            totalPrice = TotalPrice(19000),
+        )
+        every { reader.read(any()) } returns orderEntity
+        every { orderItemReader.read(any(), any()) } returns orderItemEntity
+        every { orderItemWriter.cancel(any()) } throws AlreadyCanceledOrderException()
+
+        val exception = assertThrows<AlreadyCanceledOrderException> {
+            service.cancel(orderEntity.id, orderItemEntity.id)
+        }
+
+        assertThat(exception.message).isEqualTo("already canceled orderItem")
+        assertThat(exception.data).isEqualTo("이미 취소된 주문 상품입니다.")
+    }
+
     private fun generateOrderEntity(command: Checkout) = OrderEntity(
         orderCode = CodeGenerator.generateOrderCode(LocalDateTime.now()),
         userId = 1,
