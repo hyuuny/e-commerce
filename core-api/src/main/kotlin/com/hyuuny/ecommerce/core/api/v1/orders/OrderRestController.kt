@@ -33,9 +33,15 @@ class OrderRestController(
         return ApiResponse.success(SimplePage(page.content.map { OrderResponseDto(it) }, page))
     }
 
-    @PostMapping("/{id}/order-item/{orderItemId}/confirm")
+    @PatchMapping("/{id}/order-item/{orderItemId}/confirm")
     fun confirmPurchase(@PathVariable id: Long, @PathVariable orderItemId: Long): ApiResponse<Any> {
         service.confirmPurchase(id, orderItemId)
+        return ApiResponse.success()
+    }
+
+    @PatchMapping("/{id}/order-item/{orderItemId}/cancel")
+    fun cancel(@PathVariable id: Long, @PathVariable orderItemId: Long): ApiResponse<Any> {
+        service.cancel(id, orderItemId)
         return ApiResponse.success()
     }
 }
