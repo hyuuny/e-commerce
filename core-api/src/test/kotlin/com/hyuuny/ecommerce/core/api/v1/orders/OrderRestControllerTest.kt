@@ -517,6 +517,39 @@ class OrderRestControllerTest(
         }
     }
 
+    @CsvSource("IN_SHIPPING", "COMPLETED_SHIPPING", "CONFIRM_PURCHASE")
+    @ParameterizedTest
+    fun `취소가 불가능한 주문 아이템 상태는 취소 할 수 없다`(status: OrderItemStatus) {
+        val orderEntity = repository.save(generateOrderEntity(100000, 1000, 99000, COMPLETED_PAYMENT))
+        val orderItemEntity = orderItemRepository.save(
+            OrderItemEntity(
+                status = status,
+                orderId = orderEntity.id,
+                productId = 1,
+                productName = "product",
+                quantity = 1,
+                discountPrice = com.hyuuny.ecommerce.storage.db.core.orders.DiscountPrice(1000),
+                price = com.hyuuny.ecommerce.storage.db.core.orders.Price(20000),
+                totalPrice = TotalPrice(19000),
+            )
+        )
+
+        Given {
+            contentType(ContentType.JSON)
+            header(HttpHeaders.AUTHORIZATION, generateJwtToken(DEFAULT_USER_EMAIL, DEFAULT_USER_PASSWORD))
+            log().all()
+        } When {
+            patch("/api/v1/orders/${orderEntity.id}/order-item/${orderItemEntity.id}/cancel")
+        } Then {
+            statusCode(HttpStatus.SC_BAD_REQUEST)
+            body("result", equalTo(ResultType.ERROR.name))
+            body("error.code", equalTo(ErrorCode.E400.name))
+            body("error.message", equalTo(ErrorType.INVALID_CANCEL_ORDER_ITEM.message))
+            body("error.data", equalTo("취소 가능한 상태가 아닙니다. status: $status"))
+            log().all()
+        }
+    }
+
     private fun generateOrderEntity(
         totalProductPrice: Long,
         totalDiscountPrice: Long,
