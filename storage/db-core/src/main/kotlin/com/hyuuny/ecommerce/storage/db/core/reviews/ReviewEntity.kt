@@ -1,10 +1,7 @@
 package com.hyuuny.ecommerce.storage.db.core.reviews
 
 import com.hyuuny.ecommerce.storage.db.core.BaseEntity
-import jakarta.persistence.Entity
-import jakarta.persistence.Index
-import jakarta.persistence.Lob
-import jakarta.persistence.Table
+import jakarta.persistence.*
 
 @Table(
     name = "reviews",
@@ -12,9 +9,14 @@ import jakarta.persistence.Table
 )
 @Entity
 class ReviewEntity(
+    type: ReviewType = ReviewType.TEXT,
     val userId: Long,
     val orderItemId: Long,
     val productId: Long,
     @Lob val content: String,
     val score: Score,
-) : BaseEntity()
+) : BaseEntity() {
+    @Enumerated(EnumType.STRING)
+    var type: ReviewType = type
+        protected set
+}
