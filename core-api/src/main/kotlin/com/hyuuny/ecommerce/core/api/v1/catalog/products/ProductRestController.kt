@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 class ProductRestController(
     private val service: ProductService,
+    private val productViewService: ProductViewService,
 ) {
     @GetMapping
     fun search(
@@ -27,6 +28,7 @@ class ProductRestController(
     @GetMapping("/{id}")
     fun getProduct(@PathVariable id: Long): ApiResponse<ProductViewResponseDto> {
         val product = service.getProduct(id)
+        productViewService.increaseViewCount(id)
         return ApiResponse.success(ProductViewResponseDto(product))
     }
 }
