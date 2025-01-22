@@ -16,12 +16,16 @@ class ProductEntity(
     val price: Price,
     val discountPrice: DiscountPrice,
     stockQuantity: StockQuantity,
+    viewCount: ViewCount,
 ) : BaseEntity() {
     @Enumerated(EnumType.STRING)
     var status = status
         protected set
 
     var stockQuantity = stockQuantity
+        protected set
+
+    var viewCount = viewCount
         protected set
 
     fun calculateDiscountPercent(): Double {
@@ -43,5 +47,9 @@ class ProductEntity(
 
     fun soldOut() {
         status = ProductStatus.SOLD_OUT
+    }
+
+    fun increaseViewCount(additionalCount: Int) {
+        viewCount += additionalCount
     }
 }
