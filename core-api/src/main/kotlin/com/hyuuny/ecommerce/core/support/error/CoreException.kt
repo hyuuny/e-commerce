@@ -50,3 +50,7 @@ class InvalidConfirmPurchaseException(
 class InvalidCancelOrderItemException(
     data: Any? = null,
 ) : CoreException(ErrorType.INVALID_CANCEL_ORDER_ITEM, data)
+
+class ReviewNotFoundException(
+    data: Any? = null,
+) : CoreException(ErrorType.REVIEW_NOT_FOUND, data)

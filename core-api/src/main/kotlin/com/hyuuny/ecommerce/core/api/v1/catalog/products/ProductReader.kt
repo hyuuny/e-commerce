@@ -19,4 +19,6 @@ class ProductReader(
         ?: throw ProductNotFoundException("상품을 찾을 수 없습니다. id: $id")
 
     fun readAllByIds(ids: List<Long>): List<ProductEntity> = repository.findAllById(ids)
+
+    fun exists(id: Long): Boolean = repository.existsById(id)
 }
