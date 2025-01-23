@@ -16,7 +16,7 @@ class ProductEntity(
     val price: Price,
     val discountPrice: DiscountPrice,
     stockQuantity: StockQuantity,
-    viewCount: ViewCount,
+    viewCount: ViewCount = ViewCount.init(),
 ) : BaseEntity() {
     @Enumerated(EnumType.STRING)
     var status = status
