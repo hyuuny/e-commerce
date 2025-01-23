@@ -2,6 +2,7 @@ package com.hyuuny.ecommerce.core.api.v1.reviews
 
 import com.hyuuny.ecommerce.core.support.error.ErrorType
 import com.hyuuny.ecommerce.core.support.error.OrderItemNotFoundException
+import com.hyuuny.ecommerce.core.support.error.ProductNotFoundException
 import com.hyuuny.ecommerce.storage.db.core.reviews.ReviewEntity
 import com.hyuuny.ecommerce.storage.db.core.reviews.ReviewPhotoEntity
 import com.hyuuny.ecommerce.storage.db.core.reviews.ReviewType
@@ -110,5 +111,43 @@ class ReviewServiceTest {
         }
         assertThat(exception.message).isEqualTo(ErrorType.ORDER_ITEM_NOT_FOUND.message)
         assertThat(exception.data).isEqualTo("주문 상품을 찾을 수 없습니다. id: 1")
+    }
+
+    @Test
+    fun `주문 상품의 상품이 존재하지 않으면 후기를 작성할 수 없다`() {
+        val reviewEntity = ReviewEntity(
+            userId = 1,
+            orderItemId = 1,
+            productId = 1,
+            type = ReviewType.PHOTO,
+            content = "1. 마스크 밀착력은 평타는 하며 에센스 양도 적당해서 목부분까지 마르고도 남을양입니다.\n" +
+                    "\n" +
+                    "2. 평상시에 1일 1팩보다는 피부가 예민하거나 건조하실때 사용을 하시면 큰 도움이 됩니다. 각질 일어났던 부분이 진정이 됩니다.\n" +
+                    "\n" +
+                    "3. 자극없는 순한제품이어서 피부타입없이 누구나 사용가능합니다.\n" +
+                    "\n" +
+                    "결론은 피부가 건조하실때 사용을 하시면 됩니다. 피부타입에 상관없이 사용가능합니다.",
+            score = Score(5),
+        )
+        val reviewPhotoEntities = listOf(
+            ReviewPhotoEntity(reviewId = reviewEntity.id, photoUrl = "http://ecommerce.hyuuny.com/photo-1.jpg"),
+            ReviewPhotoEntity(reviewId = reviewEntity.id, photoUrl = "http://ecommerce.hyuuny.com/photo-2.jpg"),
+            ReviewPhotoEntity(reviewId = reviewEntity.id, photoUrl = "http://ecommerce.hyuuny.com/photo-3.jpg"),
+        )
+        val writeReview = WriteReview(
+            userId = 1,
+            orderItemId = 1,
+            productId = 1,
+            content = reviewEntity.content,
+            score = 5,
+            photos = reviewPhotoEntities.map { WriteReviewPhoto(it.photoUrl) },
+        )
+        every { validator.validate(any(), any()) } throws ProductNotFoundException("상품을 찾을 수 없습니다. id: 1")
+
+        val exception = assertThrows<ProductNotFoundException> {
+            reviewService.write(writeReview)
+        }
+        assertThat(exception.message).isEqualTo(ErrorType.PRODUCT_NOT_FOUND.message)
+        assertThat(exception.data).isEqualTo("상품을 찾을 수 없습니다. id: 1")
     }
 }
