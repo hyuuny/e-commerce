@@ -10,9 +10,11 @@ class OrderItemReader(
     private val repository: OrderItemRepository,
 ) {
     fun readAll(orderId: Long): List<OrderItemEntity> = repository.findAllByOrderId(orderId)
-    
+
     fun readAllByOrderIds(orderIds: List<Long>): List<OrderItemEntity> = repository.findAllByOrderIdIn(orderIds)
 
     fun read(id: Long, orderId: Long): OrderItemEntity = repository.findByIdAndOrderId(id, orderId)
         ?: throw OrderItemNotFoundException("주문 상품을 찾을 수 없습니다. id: $id, orderId: $orderId")
+
+    fun exists(id: Long): Boolean = repository.existsById(id)
 }
