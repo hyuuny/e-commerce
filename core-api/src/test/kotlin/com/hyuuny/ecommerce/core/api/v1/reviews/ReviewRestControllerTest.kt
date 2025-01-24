@@ -158,4 +158,53 @@ class ReviewRestControllerTest(
             log().all()
         }
     }
+
+    @Test
+    fun `주문 상품의 상품이 존재하지 않으면 후기를 작성할 수 없다`() {
+        val orderItemEntity = orderITemRepository.save(
+            OrderItemEntity(
+                orderId = 1,
+                productId = INVALID_ID,
+                productName = "[2024 어워즈/마스크팩 1등] 토리든 다이브인 저분자 히알루론산 마스크 8매 어워즈 한정기획 (+셀메이징 2매)",
+                quantity = 1,
+                price = Price(10000),
+                discountPrice = DiscountPrice(2000),
+                totalPrice = TotalPrice(8000)
+            )
+        )
+        val request = WriteReviewRequestDto(
+            userId = 1,
+            orderItemId = orderItemEntity.id,
+            productId = orderItemEntity.productId,
+            content = "1. 마스크 밀착력은 평타는 하며 에센스 양도 적당해서 목부분까지 마르고도 남을양입니다.\n" +
+                    "\n" +
+                    "2. 평상시에 1일 1팩보다는 피부가 예민하거나 건조하실때 사용을 하시면 큰 도움이 됩니다. 각질 일어났던 부분이 진정이 됩니다.\n" +
+                    "\n" +
+                    "3. 자극없는 순한제품이어서 피부타입없이 누구나 사용가능합니다.\n" +
+                    "\n" +
+                    "결론은 피부가 건조하실때 사용을 하시면 됩니다. 피부타입에 상관없이 사용가능합니다.",
+            score = 5,
+            photos = listOf(
+                WriteReviewPhotoRequestDto(photoUrl = "http://ecommerce.hyuuny.com/photo-1.jpg"),
+                WriteReviewPhotoRequestDto(photoUrl = "http://ecommerce.hyuuny.com/photo-2.jpg"),
+                WriteReviewPhotoRequestDto(photoUrl = "http://ecommerce.hyuuny.com/photo-3.jpg"),
+            )
+        )
+
+        Given {
+            contentType(ContentType.JSON)
+            header(HttpHeaders.AUTHORIZATION, generateJwtToken(DEFAULT_USER_EMAIL, DEFAULT_USER_PASSWORD))
+            body(request)
+            log().all()
+        } When {
+            post("/api/v1/reviews")
+        } Then {
+            statusCode(HttpStatus.SC_NOT_FOUND)
+            body("result", equalTo(ResultType.ERROR.name))
+            body("error.code", equalTo(ErrorCode.E404.name))
+            body("error.message", equalTo(ErrorType.PRODUCT_NOT_FOUND.message))
+            body("error.data", equalTo("상품을 찾을 수 없습니다. id: $INVALID_ID"))
+            log().all()
+        }
+    }
 }
