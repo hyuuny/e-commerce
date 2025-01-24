@@ -1,6 +1,8 @@
 package com.hyuuny.ecommerce.core.api.v1.reviews
 
 import com.hyuuny.ecommerce.core.BaseIntegrationTest
+import com.hyuuny.ecommerce.core.support.error.ErrorCode
+import com.hyuuny.ecommerce.core.support.error.ErrorType
 import com.hyuuny.ecommerce.core.support.response.ResultType
 import com.hyuuny.ecommerce.storage.db.core.catalog.products.ProductEntity
 import com.hyuuny.ecommerce.storage.db.core.catalog.products.ProductRepository
@@ -115,6 +117,44 @@ class ReviewRestControllerTest(
             body("data.photos[0].photoUrl", equalTo(request.photos[0].photoUrl))
             body("data.photos[1].photoUrl", equalTo(request.photos[1].photoUrl))
             body("data.photos[2].photoUrl", equalTo(request.photos[2].photoUrl))
+            log().all()
+        }
+    }
+
+    @Test
+    fun `주문 상품이 존재하지 않으면 후기를 작성할 수 없다`() {
+        val request = WriteReviewRequestDto(
+            userId = 1,
+            orderItemId = INVALID_ID,
+            productId = 1,
+            content = "1. 마스크 밀착력은 평타는 하며 에센스 양도 적당해서 목부분까지 마르고도 남을양입니다.\n" +
+                    "\n" +
+                    "2. 평상시에 1일 1팩보다는 피부가 예민하거나 건조하실때 사용을 하시면 큰 도움이 됩니다. 각질 일어났던 부분이 진정이 됩니다.\n" +
+                    "\n" +
+                    "3. 자극없는 순한제품이어서 피부타입없이 누구나 사용가능합니다.\n" +
+                    "\n" +
+                    "결론은 피부가 건조하실때 사용을 하시면 됩니다. 피부타입에 상관없이 사용가능합니다.",
+            score = 5,
+            photos = listOf(
+                WriteReviewPhotoRequestDto(photoUrl = "http://ecommerce.hyuuny.com/photo-1.jpg"),
+                WriteReviewPhotoRequestDto(photoUrl = "http://ecommerce.hyuuny.com/photo-2.jpg"),
+                WriteReviewPhotoRequestDto(photoUrl = "http://ecommerce.hyuuny.com/photo-3.jpg"),
+            )
+        )
+
+        Given {
+            contentType(ContentType.JSON)
+            header(HttpHeaders.AUTHORIZATION, generateJwtToken(DEFAULT_USER_EMAIL, DEFAULT_USER_PASSWORD))
+            body(request)
+            log().all()
+        } When {
+            post("/api/v1/reviews")
+        } Then {
+            statusCode(HttpStatus.SC_NOT_FOUND)
+            body("result", equalTo(ResultType.ERROR.name))
+            body("error.code", equalTo(ErrorCode.E404.name))
+            body("error.message", equalTo(ErrorType.ORDER_ITEM_NOT_FOUND.message))
+            body("error.data", equalTo("주문 상품을 찾을 수 없습니다. id: $INVALID_ID"))
             log().all()
         }
     }
