@@ -3,6 +3,7 @@ package com.hyuuny.ecommerce.core.api.v1.reviews
 import com.hyuuny.ecommerce.core.support.error.ErrorType
 import com.hyuuny.ecommerce.core.support.error.OrderItemNotFoundException
 import com.hyuuny.ecommerce.core.support.error.ProductNotFoundException
+import com.hyuuny.ecommerce.core.support.error.ReviewNotFoundException
 import com.hyuuny.ecommerce.storage.db.core.reviews.ReviewEntity
 import com.hyuuny.ecommerce.storage.db.core.reviews.ReviewPhotoEntity
 import com.hyuuny.ecommerce.storage.db.core.reviews.ReviewType
@@ -18,16 +19,20 @@ import org.junit.jupiter.api.assertThrows
 
 class ReviewServiceTest {
     private lateinit var reviewWriter: ReviewWriter
+    private lateinit var reviewReader: ReviewReader
     private lateinit var reviewPhotoWriter: ReviewPhotoWriter
+    private lateinit var reviewPhotoReader: ReviewPhotoReader
     private lateinit var validator: OrderReviewValidator
     private lateinit var reviewService: ReviewService
 
     @BeforeEach
     fun setUp() {
         reviewWriter = mockk()
+        reviewReader = mockk()
         reviewPhotoWriter = mockk()
+        reviewPhotoReader = mockk()
         validator = mockk()
-        reviewService = ReviewService(reviewWriter, reviewPhotoWriter, validator)
+        reviewService = ReviewService(reviewWriter, reviewReader, reviewPhotoWriter, reviewPhotoReader, validator)
     }
 
     @Test
@@ -149,5 +154,55 @@ class ReviewServiceTest {
         }
         assertThat(exception.message).isEqualTo(ErrorType.PRODUCT_NOT_FOUND.message)
         assertThat(exception.data).isEqualTo("상품을 찾을 수 없습니다. id: 1")
+    }
+
+    @Test
+    fun `후기를 상세 조회 할 수 있다`() {
+        val reviewEntity = ReviewEntity(
+            userId = 1,
+            orderItemId = 1,
+            productId = 1,
+            type = ReviewType.PHOTO,
+            content = "1. 마스크 밀착력은 평타는 하며 에센스 양도 적당해서 목부분까지 마르고도 남을양입니다.\n" +
+                    "\n" +
+                    "2. 평상시에 1일 1팩보다는 피부가 예민하거나 건조하실때 사용을 하시면 큰 도움이 됩니다. 각질 일어났던 부분이 진정이 됩니다.\n" +
+                    "\n" +
+                    "3. 자극없는 순한제품이어서 피부타입없이 누구나 사용가능합니다.\n" +
+                    "\n" +
+                    "결론은 피부가 건조하실때 사용을 하시면 됩니다. 피부타입에 상관없이 사용가능합니다.",
+            score = Score(5),
+        )
+        val reviewPhotoEntities = listOf(
+            ReviewPhotoEntity(reviewId = reviewEntity.id, photoUrl = "http://ecommerce.hyuuny.com/photo-1.jpg"),
+            ReviewPhotoEntity(reviewId = reviewEntity.id, photoUrl = "http://ecommerce.hyuuny.com/photo-2.jpg"),
+            ReviewPhotoEntity(reviewId = reviewEntity.id, photoUrl = "http://ecommerce.hyuuny.com/photo-3.jpg"),
+        )
+        every { reviewReader.read(any()) } returns reviewEntity
+        every { reviewPhotoReader.readAll(any()) } returns reviewPhotoEntities
+
+        val reviewView = reviewService.getReview(reviewEntity.id)
+
+        assertThat(reviewView.type).isEqualTo(reviewEntity.type)
+        assertThat(reviewView.userId).isEqualTo(reviewEntity.userId)
+        assertThat(reviewView.orderItemId).isEqualTo(reviewEntity.orderItemId)
+        assertThat(reviewView.productId).isEqualTo(reviewEntity.productId)
+        assertThat(reviewView.content).isEqualTo(reviewEntity.content)
+        assertThat(reviewView.score).isEqualTo(reviewEntity.score)
+        reviewView.photos.forEachIndexed { index, photo ->
+            assertThat(photo.photoUrl).isEqualTo(reviewPhotoEntities[index].photoUrl)
+        }
+    }
+
+    @Test
+    fun `존재하지 않는 후기를 상세 조회 할 수 없다`() {
+        val invalidId = 9L
+        every { reviewReader.read(any()) } throws ReviewNotFoundException("후기를 찾을 수 없습니다. id: $invalidId")
+
+        val exception = assertThrows<ReviewNotFoundException> {
+            reviewService.getReview(invalidId)
+        }
+
+        assertThat(exception.message).isEqualTo(ErrorType.REVIEW_NOT_FOUND.message)
+        assertThat(exception.data).isEqualTo("후기를 찾을 수 없습니다. id: $invalidId")
     }
 }
