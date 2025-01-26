@@ -207,4 +207,90 @@ class ReviewRestControllerTest(
             log().all()
         }
     }
+
+    @Test
+    fun `후기를 상세 조회 할 수 있다`() {
+        val productEntity = productRepository.save(
+            ProductEntity(
+                1,
+                ON_SALE,
+                "product-1",
+                "thumbnail.png",
+                ProductsPrice(20000),
+                ProductsDiscountPrice(1000),
+                StockQuantity(100)
+            )
+        )
+        val orderItemEntity = orderITemRepository.save(
+            OrderItemEntity(
+                orderId = 1,
+                productId = productEntity.id,
+                productName = "[2024 어워즈/마스크팩 1등] 토리든 다이브인 저분자 히알루론산 마스크 8매 어워즈 한정기획 (+셀메이징 2매)",
+                quantity = 1,
+                price = Price(10000),
+                discountPrice = DiscountPrice(2000),
+                totalPrice = TotalPrice(8000)
+            )
+        )
+        val request = WriteReviewRequestDto(
+            userId = 1,
+            orderItemId = orderItemEntity.id,
+            productId = orderItemEntity.productId,
+            content = "1. 마스크 밀착력은 평타는 하며 에센스 양도 적당해서 목부분까지 마르고도 남을양입니다.\n" +
+                    "\n" +
+                    "2. 평상시에 1일 1팩보다는 피부가 예민하거나 건조하실때 사용을 하시면 큰 도움이 됩니다. 각질 일어났던 부분이 진정이 됩니다.\n" +
+                    "\n" +
+                    "3. 자극없는 순한제품이어서 피부타입없이 누구나 사용가능합니다.\n" +
+                    "\n" +
+                    "결론은 피부가 건조하실때 사용을 하시면 됩니다. 피부타입에 상관없이 사용가능합니다.",
+            score = 5,
+            photos = listOf(
+                WriteReviewPhotoRequestDto("http://ecommerce.hyuuny.com/photo-1.jpg"),
+                WriteReviewPhotoRequestDto("http://ecommerce.hyuuny.com/photo-2.jpg"),
+                WriteReviewPhotoRequestDto("http://ecommerce.hyuuny.com/photo-3.jpg"),
+            )
+        )
+        val newReview = service.write(request.toWriteReview())
+
+        Given {
+            contentType(ContentType.JSON)
+            header(HttpHeaders.AUTHORIZATION, generateJwtToken(DEFAULT_USER_EMAIL, DEFAULT_USER_PASSWORD))
+            log().all()
+        } When {
+            get("/api/v1/reviews/${newReview.id}")
+        } Then {
+            statusCode(HttpStatus.SC_OK)
+            body("result", equalTo(ResultType.SUCCESS.name))
+            body("result", equalTo(ResultType.SUCCESS.name))
+            body("data.type", equalTo(ReviewType.PHOTO.name))
+            body("data.userId", equalTo(newReview.userId.toInt()))
+            body("data.orderItemId", equalTo(newReview.orderItemId.toInt()))
+            body("data.productId", equalTo(newReview.productId.toInt()))
+            body("data.content", equalTo(newReview.content))
+            body("data.score", equalTo(newReview.score.score))
+            body("data.photos.size()", equalTo(newReview.photos.size))
+            body("data.photos[0].photoUrl", equalTo(newReview.photos[0].photoUrl))
+            body("data.photos[1].photoUrl", equalTo(newReview.photos[1].photoUrl))
+            body("data.photos[2].photoUrl", equalTo(newReview.photos[2].photoUrl))
+            log().all()
+        }
+    }
+
+    @Test
+    fun `존재하지 않는 후기를 상세 조회 할 수 없다`() {
+        Given {
+            contentType(ContentType.JSON)
+            header(HttpHeaders.AUTHORIZATION, generateJwtToken(DEFAULT_USER_EMAIL, DEFAULT_USER_PASSWORD))
+            log().all()
+        } When {
+            get("/api/v1/reviews/$INVALID_ID")
+        } Then {
+            statusCode(HttpStatus.SC_NOT_FOUND)
+            body("result", equalTo(ResultType.ERROR.name))
+            body("error.code", equalTo(ErrorCode.E404.name))
+            body("error.message", equalTo(ErrorType.REVIEW_NOT_FOUND.message))
+            body("error.data", equalTo("후기를 찾을 수 없습니다. id: $INVALID_ID"))
+            log().all()
+        }
+    }
 }
