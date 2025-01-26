@@ -14,30 +14,30 @@ data class ReviewViewData(
     val productId: Long,
     val content: String,
     val score: Score,
-    val photos: List<ReviewPhotoViewData>,
+    val photos: List<ReviewPhotoData>,
     val createdAt: LocalDateTime,
 ) {
-    constructor(reviewEntity: ReviewEntity, reviewPhotoEntities: List<ReviewPhotoEntity>) : this(
-        id = reviewEntity.id,
-        type = reviewEntity.type,
-        userId = reviewEntity.userId,
-        orderItemId = reviewEntity.orderItemId,
-        productId = reviewEntity.productId,
-        content = reviewEntity.content,
-        score = reviewEntity.score,
-        photos = reviewPhotoEntities.map { ReviewPhotoViewData(it) },
-        createdAt = reviewEntity.createdAt,
+    constructor(entity: ReviewEntity, reviewPhotoEntities: List<ReviewPhotoEntity>) : this(
+        id = entity.id,
+        type = entity.type,
+        userId = entity.userId,
+        orderItemId = entity.orderItemId,
+        productId = entity.productId,
+        content = entity.content,
+        score = entity.score,
+        photos = reviewPhotoEntities.map { ReviewPhotoData(it) },
+        createdAt = entity.createdAt,
     )
 }
 
-data class ReviewPhotoViewData(
+data class ReviewPhotoData(
     val id: Long,
     val reviewId: Long,
     val photoUrl: String,
 ) {
-    constructor(reviewPhotoEntity: ReviewPhotoEntity) : this(
-        id = reviewPhotoEntity.id,
-        reviewId = reviewPhotoEntity.reviewId,
-        photoUrl = reviewPhotoEntity.photoUrl,
+    constructor(entity: ReviewPhotoEntity) : this(
+        id = entity.id,
+        reviewId = entity.reviewId,
+        photoUrl = entity.photoUrl,
     )
 }
