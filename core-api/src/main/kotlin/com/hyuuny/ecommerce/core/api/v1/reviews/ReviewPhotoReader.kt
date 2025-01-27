@@ -9,4 +9,5 @@ class ReviewPhotoReader(
     private val repository: ReviewPhotoRepository,
 ) {
     fun readAll(reviewId: Long): List<ReviewPhotoEntity> = repository.findAllByReviewId(reviewId)
+    fun readAllByReviewIds(reviewIds: List<Long>): List<ReviewPhotoEntity> = repository.findAllByReviewIdIn(reviewIds)
 }

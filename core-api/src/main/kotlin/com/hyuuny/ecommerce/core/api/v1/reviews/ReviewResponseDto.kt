@@ -32,9 +32,9 @@ data class ReviewPhotoResponseDto(
     val reviewId: Long,
     val photoUrl: String,
 ) {
-    constructor(reviewPhotoViewData: ReviewPhotoViewData) : this(
-        id = reviewPhotoViewData.id,
-        reviewId = reviewPhotoViewData.reviewId,
-        photoUrl = reviewPhotoViewData.photoUrl,
+    constructor(reviewPhotoData: ReviewPhotoData) : this(
+        id = reviewPhotoData.id,
+        reviewId = reviewPhotoData.reviewId,
+        photoUrl = reviewPhotoData.photoUrl,
     )
 }

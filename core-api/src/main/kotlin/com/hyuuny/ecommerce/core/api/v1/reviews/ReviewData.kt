@@ -4,6 +4,7 @@ import com.hyuuny.ecommerce.storage.db.core.reviews.ReviewEntity
 import com.hyuuny.ecommerce.storage.db.core.reviews.ReviewPhotoEntity
 import com.hyuuny.ecommerce.storage.db.core.reviews.ReviewType
 import com.hyuuny.ecommerce.storage.db.core.reviews.Score
+import com.hyuuny.ecommerce.storage.db.core.users.UserEntity
 import java.time.LocalDateTime
 
 data class ReviewViewData(
@@ -39,5 +40,31 @@ data class ReviewPhotoData(
         id = entity.id,
         reviewId = entity.reviewId,
         photoUrl = entity.photoUrl,
+    )
+}
+
+data class ReviewData(
+    val id: Long,
+    val type: ReviewType,
+    val userId: Long,
+    val userName: String,
+    val orderItemId: Long,
+    val productId: Long,
+    val content: String,
+    val score: Score,
+    val photos: List<ReviewPhotoData>,
+    val createdAt: LocalDateTime,
+) {
+    constructor(entity: ReviewEntity, user: UserEntity, photos: List<ReviewPhotoEntity>) : this(
+        id = entity.id,
+        type = entity.type,
+        userId = user.id,
+        userName = user.name,
+        orderItemId = entity.orderItemId,
+        productId = entity.productId,
+        content = entity.content,
+        score = entity.score,
+        photos = photos.map { ReviewPhotoData(it) },
+        createdAt = entity.createdAt
     )
 }
