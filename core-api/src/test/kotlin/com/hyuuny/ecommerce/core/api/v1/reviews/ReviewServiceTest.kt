@@ -1,13 +1,17 @@
 package com.hyuuny.ecommerce.core.api.v1.reviews
 
+import com.hyuuny.ecommerce.core.api.v1.users.UserReader
 import com.hyuuny.ecommerce.core.support.error.ErrorType
 import com.hyuuny.ecommerce.core.support.error.OrderItemNotFoundException
 import com.hyuuny.ecommerce.core.support.error.ProductNotFoundException
 import com.hyuuny.ecommerce.core.support.error.ReviewNotFoundException
+import com.hyuuny.ecommerce.storage.db.core.response.SimplePage
 import com.hyuuny.ecommerce.storage.db.core.reviews.ReviewEntity
 import com.hyuuny.ecommerce.storage.db.core.reviews.ReviewPhotoEntity
 import com.hyuuny.ecommerce.storage.db.core.reviews.ReviewType
 import com.hyuuny.ecommerce.storage.db.core.reviews.Score
+import com.hyuuny.ecommerce.storage.db.core.users.Role
+import com.hyuuny.ecommerce.storage.db.core.users.UserEntity
 import io.mockk.Runs
 import io.mockk.every
 import io.mockk.just
@@ -16,12 +20,14 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.springframework.data.domain.PageRequest
 
 class ReviewServiceTest {
     private lateinit var reviewWriter: ReviewWriter
     private lateinit var reviewReader: ReviewReader
     private lateinit var reviewPhotoWriter: ReviewPhotoWriter
     private lateinit var reviewPhotoReader: ReviewPhotoReader
+    private lateinit var userReader: UserReader
     private lateinit var validator: OrderReviewValidator
     private lateinit var reviewService: ReviewService
 
@@ -31,8 +37,11 @@ class ReviewServiceTest {
         reviewReader = mockk()
         reviewPhotoWriter = mockk()
         reviewPhotoReader = mockk()
+        userReader = mockk()
         validator = mockk()
-        reviewService = ReviewService(reviewWriter, reviewReader, reviewPhotoWriter, reviewPhotoReader, validator)
+        reviewService = ReviewService(
+            reviewWriter, reviewReader, reviewPhotoWriter, reviewPhotoReader, userReader, validator,
+        )
     }
 
     @Test
@@ -204,5 +213,42 @@ class ReviewServiceTest {
 
         assertThat(exception.message).isEqualTo(ErrorType.REVIEW_NOT_FOUND.message)
         assertThat(exception.data).isEqualTo("후기를 찾을 수 없습니다. id: $invalidId")
+    }
+
+    @Test
+    fun `후기 목록을 조회할 수 있다`() {
+        val productId = 111L
+        val userEntity = UserEntity("newuser@naver.com", "pwd123!", "나가입", "01012345678", setOf(Role.CUSTOMER))
+        val reviewEntities = listOf(
+            ReviewEntity(ReviewType.PHOTO, userEntity.id, 1, productId, "content-1", Score(5)),
+            ReviewEntity(ReviewType.PHOTO, userEntity.id, 1, productId, "content-2", Score(5)),
+            ReviewEntity(ReviewType.PHOTO, userEntity.id, 1, productId, "content-3", Score(3)),
+            ReviewEntity(ReviewType.PHOTO, userEntity.id, 1, productId, "content-4", Score(2)),
+            ReviewEntity(ReviewType.PHOTO, userEntity.id, 1, productId, "content-5", Score(1)),
+            ReviewEntity(ReviewType.PHOTO, userEntity.id, 1, productId, "content-6", Score(1)),
+            ReviewEntity(ReviewType.PHOTO, userEntity.id, 1, productId, "content-7", Score(2)),
+            ReviewEntity(ReviewType.PHOTO, userEntity.id, 1, productId, "content-8", Score(4)),
+            ReviewEntity(ReviewType.PHOTO, userEntity.id, 1, productId, "content-9", Score(5)),
+            ReviewEntity(ReviewType.PHOTO, userEntity.id, 1, productId, "content-10", Score(3)),
+            ReviewEntity(ReviewType.PHOTO, userEntity.id, 1, productId, "content-11", Score(5)),
+        )
+        val reviewPhotoEntities = listOf(
+            ReviewPhotoEntity(reviewId = reviewEntities[0].id, photoUrl = "http://ecommerce.hyuuny.com/photo-1.jpg"),
+            ReviewPhotoEntity(reviewId = reviewEntities[0].id, photoUrl = "http://ecommerce.hyuuny.com/photo-2.jpg"),
+            ReviewPhotoEntity(reviewId = reviewEntities[0].id, photoUrl = "http://ecommerce.hyuuny.com/photo-3.jpg"),
+        )
+        val page = SimplePage(reviewEntities.slice(0 until 10), 1, 10, false)
+        every { reviewReader.search(any(), any()) } returns page
+        every { reviewPhotoReader.readAllByReviewIds(any()) } returns reviewPhotoEntities
+        every { userReader.readAllByIds(any()) } returns listOf(userEntity)
+
+        val search = reviewService.search(ReviewSearchCommand(productId = productId), PageRequest.of(0, 10))
+
+        assertThat(search.content).hasSize(10)
+        search.content.forEachIndexed { index, item ->
+            assertThat(item.type).isEqualTo(reviewEntities[index].type)
+            assertThat(item.content).isEqualTo(reviewEntities[index].content)
+            assertThat(item.score).isEqualTo(reviewEntities[index].score)
+        }
     }
 }
