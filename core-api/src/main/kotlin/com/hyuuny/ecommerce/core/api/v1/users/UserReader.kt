@@ -12,4 +12,6 @@ class UserReader(
 ) {
     fun read(id: Long): UserEntity = repository.findByIdOrNull(id)
         ?: throw UserNotFoundException("회원을 찾을 수 없습니다. id: $id")
+
+    fun readAllByIds(ids: List<Long>): List<UserEntity> = repository.findAllById(ids).toList()
 }

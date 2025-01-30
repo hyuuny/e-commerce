@@ -1,9 +1,6 @@
 package com.hyuuny.ecommerce.core.api.v1.reviews
 
-import com.hyuuny.ecommerce.storage.db.core.reviews.ReviewEntity
-import com.hyuuny.ecommerce.storage.db.core.reviews.ReviewPhotoEntity
-import com.hyuuny.ecommerce.storage.db.core.reviews.ReviewType
-import com.hyuuny.ecommerce.storage.db.core.reviews.Score
+import com.hyuuny.ecommerce.storage.db.core.reviews.*
 
 data class WriteReview(
     val userId: Long,
@@ -29,5 +26,17 @@ data class WriteReviewPhoto(
     fun toEntity(reviewId: Long) = ReviewPhotoEntity(
         reviewId = reviewId,
         photoUrl = photoUrl,
+    )
+}
+
+data class ReviewSearchCommand(
+    val productId: Long? = null,
+    val userId: Long? = null,
+    val type: ReviewType? = null,
+) {
+    fun toSearch(): SearchReview = SearchReview(
+        type = type,
+        productId = productId,
+        userId = userId,
     )
 }

@@ -14,16 +14,16 @@ data class ReviewViewResponseDto(
     val photos: List<ReviewPhotoResponseDto>,
     val createdAt: LocalDateTime,
 ) {
-    constructor(reviewViewData: ReviewViewData) : this(
-        id = reviewViewData.id,
-        type = reviewViewData.type,
-        userId = reviewViewData.userId,
-        orderItemId = reviewViewData.orderItemId,
-        productId = reviewViewData.productId,
-        content = reviewViewData.content,
-        score = reviewViewData.score.score,
-        photos = reviewViewData.photos.map { ReviewPhotoResponseDto(it) },
-        createdAt = reviewViewData.createdAt,
+    constructor(viewData: ReviewViewData) : this(
+        id = viewData.id,
+        type = viewData.type,
+        userId = viewData.userId,
+        orderItemId = viewData.orderItemId,
+        productId = viewData.productId,
+        content = viewData.content,
+        score = viewData.score.score,
+        photos = viewData.photos.map { ReviewPhotoResponseDto(it) },
+        createdAt = viewData.createdAt,
     )
 }
 
@@ -32,9 +32,35 @@ data class ReviewPhotoResponseDto(
     val reviewId: Long,
     val photoUrl: String,
 ) {
-    constructor(reviewPhotoViewData: ReviewPhotoViewData) : this(
-        id = reviewPhotoViewData.id,
-        reviewId = reviewPhotoViewData.reviewId,
-        photoUrl = reviewPhotoViewData.photoUrl,
+    constructor(data: ReviewPhotoData) : this(
+        id = data.id,
+        reviewId = data.reviewId,
+        photoUrl = data.photoUrl,
+    )
+}
+
+data class ReviewResponseDto(
+    val id: Long,
+    val type: ReviewType,
+    val userId: Long,
+    val userName: String,
+    val orderItemId: Long,
+    val productId: Long,
+    val content: String,
+    val score: Int,
+    val photos: List<ReviewPhotoResponseDto>,
+    val createdAt: LocalDateTime,
+) {
+    constructor(data: ReviewData) : this(
+        id = data.id,
+        type = data.type,
+        userId = data.userId,
+        userName = data.userName,
+        orderItemId = data.orderItemId,
+        productId = data.productId,
+        content = data.content,
+        score = data.score.score,
+        photos = data.photos.map { ReviewPhotoResponseDto(it) },
+        createdAt = data.createdAt,
     )
 }

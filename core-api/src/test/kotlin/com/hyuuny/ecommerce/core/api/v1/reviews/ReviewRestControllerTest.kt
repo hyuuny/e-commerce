@@ -1,6 +1,7 @@
 package com.hyuuny.ecommerce.core.api.v1.reviews
 
 import com.hyuuny.ecommerce.core.BaseIntegrationTest
+import com.hyuuny.ecommerce.core.TestContainer
 import com.hyuuny.ecommerce.core.support.error.ErrorCode
 import com.hyuuny.ecommerce.core.support.error.ErrorType
 import com.hyuuny.ecommerce.core.support.response.ResultType
@@ -13,9 +14,9 @@ import com.hyuuny.ecommerce.storage.db.core.orders.OrderItemEntity
 import com.hyuuny.ecommerce.storage.db.core.orders.OrderItemRepository
 import com.hyuuny.ecommerce.storage.db.core.orders.Price
 import com.hyuuny.ecommerce.storage.db.core.orders.TotalPrice
-import com.hyuuny.ecommerce.storage.db.core.reviews.ReviewPhotoRepository
-import com.hyuuny.ecommerce.storage.db.core.reviews.ReviewRepository
-import com.hyuuny.ecommerce.storage.db.core.reviews.ReviewType
+import com.hyuuny.ecommerce.storage.db.core.reviews.*
+import com.hyuuny.ecommerce.storage.db.core.users.Role
+import com.hyuuny.ecommerce.storage.db.core.users.UserEntity
 import io.restassured.RestAssured
 import io.restassured.http.ContentType
 import io.restassured.module.kotlin.extensions.Given
@@ -28,9 +29,11 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.boot.test.web.server.LocalServerPort
 import org.springframework.http.HttpHeaders
+import kotlin.random.Random
 import com.hyuuny.ecommerce.storage.db.core.catalog.products.DiscountPrice as ProductsDiscountPrice
 import com.hyuuny.ecommerce.storage.db.core.catalog.products.Price as ProductsPrice
 
+@TestContainer
 class ReviewRestControllerTest(
     @LocalServerPort val port: Int,
     private val service: ReviewService,
@@ -48,6 +51,7 @@ class ReviewRestControllerTest(
     @AfterEach
     fun tearDown() {
         RestAssured.reset()
+        deleteAllUser()
         reviewPhotoRepository.deleteAll()
         repository.deleteAll()
         orderITemRepository.deleteAll()
@@ -290,6 +294,142 @@ class ReviewRestControllerTest(
             body("error.code", equalTo(ErrorCode.E404.name))
             body("error.message", equalTo(ErrorType.REVIEW_NOT_FOUND.message))
             body("error.data", equalTo("후기를 찾을 수 없습니다. id: $INVALID_ID"))
+            log().all()
+        }
+    }
+
+    @Test
+    fun `후기 목록을 조회할 수 있다`() {
+        val productEntity = productRepository.save(
+            ProductEntity(
+                1,
+                ON_SALE,
+                "product-1",
+                "thumbnail.png",
+                ProductsPrice(20000),
+                ProductsDiscountPrice(1000),
+                StockQuantity(100)
+            )
+        )
+        val users = userRepository.saveAll(
+            listOf(
+                UserEntity("newuser1@naver.com", "pwd123!", "가가입", "01012345678", setOf(Role.CUSTOMER)),
+                UserEntity("newuser2@naver.com", "pwd123!", "나가입", "01012345678", setOf(Role.CUSTOMER)),
+                UserEntity("newuser3@naver.com", "pwd123!", "다가입", "01012345678", setOf(Role.CUSTOMER)),
+                UserEntity("newuser4@naver.com", "pwd123!", "라가입", "01012345678", setOf(Role.CUSTOMER)),
+                UserEntity("newuser5@naver.com", "pwd123!", "마가입", "01012345678", setOf(Role.CUSTOMER)),
+                UserEntity("newuser6@naver.com", "pwd123!", "바가입", "01012345678", setOf(Role.CUSTOMER)),
+                UserEntity("newuser7@naver.com", "pwd123!", "사가입", "01012345678", setOf(Role.CUSTOMER)),
+                UserEntity("newuser8@naver.com", "pwd123!", "아가입", "01012345678", setOf(Role.CUSTOMER)),
+                UserEntity("newuser9@naver.com", "pwd123!", "자가입", "01012345678", setOf(Role.CUSTOMER)),
+                UserEntity("newuser10@naver.com", "pwd123!", "차가입", "01012345678", setOf(Role.CUSTOMER)),
+                UserEntity("newuser11@naver.com", "pwd123!", "카가입", "01012345678", setOf(Role.CUSTOMER)),
+            )
+        )
+        val productId = productEntity.id
+        val reviews = users.map {
+            repository.save(
+                ReviewEntity(ReviewType.PHOTO, it.id, 1, productId, "content-${it.id}", Score(Random.nextInt(5) + 1)),
+            )
+        }
+        reviews.forEach {
+            reviewPhotoRepository.saveAll(
+                listOf(
+                    ReviewPhotoEntity(reviewId = it.id, photoUrl = "http://ecommerce.hyuuny.com/photo-${it.id}-1.jpg"),
+                    ReviewPhotoEntity(reviewId = it.id, photoUrl = "http://ecommerce.hyuuny.com/photo-${it.id}-2.jpg"),
+                    ReviewPhotoEntity(reviewId = it.id, photoUrl = "http://ecommerce.hyuuny.com/photo-${it.id}-3.jpg"),
+                )
+            )
+        }
+
+        Given {
+            contentType(ContentType.JSON)
+            params("page", 0)
+            params("size", 10)
+            params("sort", "id,DESC")
+        } When {
+            get("/api/v1/reviews")
+        } Then {
+            statusCode(HttpStatus.SC_OK)
+            body("result", equalTo(ResultType.SUCCESS.name))
+            body("data.content[0].userId", equalTo(users[10].id.toInt()))
+            body("data.content[0].content", equalTo(reviews[10].content))
+            body("data.content[0].score", equalTo(reviews[10].score.score))
+            body("data.content[9].userId", equalTo(users[1].id.toInt()))
+            body("data.content[9].content", equalTo(reviews[1].content))
+            body("data.content[9].score", equalTo(reviews[1].score.score))
+            body("data.page", equalTo(1))
+            body("data.size", equalTo(10))
+            body("data.last", equalTo(false))
+            log().all()
+        }
+    }
+
+    @Test
+    fun `후기 목록을 점수 기준으로 내림차순 조회할 수 있다`() {
+        val productEntity = productRepository.save(
+            ProductEntity(
+                1,
+                ON_SALE,
+                "product-1",
+                "thumbnail.png",
+                ProductsPrice(20000),
+                ProductsDiscountPrice(1000),
+                StockQuantity(100)
+            )
+        )
+        val users = userRepository.saveAll(
+            listOf(
+                UserEntity("newuser1@naver.com", "pwd123!", "가가입", "01012345678", setOf(Role.CUSTOMER)),
+                UserEntity("newuser2@naver.com", "pwd123!", "나가입", "01012345678", setOf(Role.CUSTOMER)),
+                UserEntity("newuser3@naver.com", "pwd123!", "다가입", "01012345678", setOf(Role.CUSTOMER)),
+                UserEntity("newuser4@naver.com", "pwd123!", "라가입", "01012345678", setOf(Role.CUSTOMER)),
+                UserEntity("newuser5@naver.com", "pwd123!", "마가입", "01012345678", setOf(Role.CUSTOMER)),
+                UserEntity("newuser6@naver.com", "pwd123!", "바가입", "01012345678", setOf(Role.CUSTOMER)),
+                UserEntity("newuser7@naver.com", "pwd123!", "사가입", "01012345678", setOf(Role.CUSTOMER)),
+                UserEntity("newuser8@naver.com", "pwd123!", "아가입", "01012345678", setOf(Role.CUSTOMER)),
+                UserEntity("newuser9@naver.com", "pwd123!", "자가입", "01012345678", setOf(Role.CUSTOMER)),
+                UserEntity("newuser10@naver.com", "pwd123!", "차가입", "01012345678", setOf(Role.CUSTOMER)),
+                UserEntity("newuser11@naver.com", "pwd123!", "카가입", "01012345678", setOf(Role.CUSTOMER)),
+            )
+        )
+        val productId = productEntity.id
+        val reviews = users.map {
+            repository.save(
+                ReviewEntity(ReviewType.PHOTO, it.id, 1, productId, "content-${it.id}", Score(Random.nextInt(5) + 1)),
+            )
+        }
+        reviews.forEach {
+            reviewPhotoRepository.saveAll(
+                listOf(
+                    ReviewPhotoEntity(reviewId = it.id, photoUrl = "http://ecommerce.hyuuny.com/photo-${it.id}-1.jpg"),
+                    ReviewPhotoEntity(reviewId = it.id, photoUrl = "http://ecommerce.hyuuny.com/photo-${it.id}-2.jpg"),
+                    ReviewPhotoEntity(reviewId = it.id, photoUrl = "http://ecommerce.hyuuny.com/photo-${it.id}-3.jpg"),
+                )
+            )
+        }
+
+        val sortedReviews = reviews.sortedWith(compareByDescending<ReviewEntity> { it.score.score }.thenByDescending { it.id })
+        Given {
+            contentType(ContentType.JSON)
+            params("page", 0)
+            params("size", 10)
+            params("sort", "score,DESC")
+            params("sort", "id,DESC")
+        } When {
+            get("/api/v1/reviews")
+        } Then {
+            statusCode(HttpStatus.SC_OK)
+            body("result", equalTo(ResultType.SUCCESS.name))
+            body("data.content[0].userId", equalTo(sortedReviews[0].userId.toInt()))
+            body("data.content[0].content", equalTo(sortedReviews[0].content))
+            body("data.content[0].score", equalTo(sortedReviews[0].score.score))
+            body("data.content[9].userId", equalTo(sortedReviews[9].userId.toInt()))
+            body("data.content[9].content", equalTo(sortedReviews[9].content))
+            body("data.content[9].score", equalTo(sortedReviews[9].score.score))
+            body("data.page", equalTo(1))
+            body("data.size", equalTo(10))
+            body("data.last", equalTo(false))
             log().all()
         }
     }

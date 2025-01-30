@@ -1,5 +1,7 @@
 package com.hyuuny.ecommerce.core.api.v1.reviews
 
+import com.hyuuny.ecommerce.storage.db.core.reviews.ReviewType
+
 data class WriteReviewRequestDto(
     val userId: Long,
     val orderItemId: Long,
@@ -23,5 +25,17 @@ data class WriteReviewPhotoRequestDto(
 ) {
     fun toWriteReviewPhoto() = WriteReviewPhoto(
         photoUrl = photoUrl,
+    )
+}
+
+data class ReviewSearchRequestDto(
+    val productId: Long? = null,
+    val userId: Long? = null,
+    val type: ReviewType? = null,
+){
+    fun toCommand(): ReviewSearchCommand = ReviewSearchCommand(
+        productId =  productId,
+        userId = userId,
+        type = type
     )
 }
