@@ -18,7 +18,7 @@ class ReviewService(
     private val userReader: UserReader,
     private val validator: OrderReviewValidator,
 ) {
-    @CacheEvict(value = ["reviewSearch", "getReview"], allEntries = true)
+    @CacheEvict(value = ["reviewSearch", "getReview", "reviewStats"], allEntries = true)
     @Transactional
     fun write(writeReview: WriteReview): ReviewViewData {
         validator.validate(writeReview.orderItemId, writeReview.productId)
@@ -47,5 +47,11 @@ class ReviewService(
             val photos = photoGroup[review.id] ?: return@mapNotNull null
             ReviewData(review, user, photos)
         }, page)
+    }
+
+    @Cacheable(value = ["reviewStats"], key = "#productId")
+    fun getReviewStats(productId: Long): ReviewStatsData {
+        val reviewStats = reviewReader.readReviewStatsByProductId(productId)
+        return ReviewStatsData(reviewStats)
     }
 }

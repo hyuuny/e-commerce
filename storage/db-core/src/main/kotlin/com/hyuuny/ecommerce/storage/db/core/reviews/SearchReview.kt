@@ -7,6 +7,6 @@ data class SearchReview(
 )
 
 data class ReviewStats(
-    val averageScore: Double?,
+    val averageScore: Double,
     val reviewCount: Long
 )
