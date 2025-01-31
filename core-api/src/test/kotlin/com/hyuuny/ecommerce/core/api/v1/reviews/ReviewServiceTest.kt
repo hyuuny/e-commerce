@@ -6,10 +6,7 @@ import com.hyuuny.ecommerce.core.support.error.OrderItemNotFoundException
 import com.hyuuny.ecommerce.core.support.error.ProductNotFoundException
 import com.hyuuny.ecommerce.core.support.error.ReviewNotFoundException
 import com.hyuuny.ecommerce.storage.db.core.response.SimplePage
-import com.hyuuny.ecommerce.storage.db.core.reviews.ReviewEntity
-import com.hyuuny.ecommerce.storage.db.core.reviews.ReviewPhotoEntity
-import com.hyuuny.ecommerce.storage.db.core.reviews.ReviewType
-import com.hyuuny.ecommerce.storage.db.core.reviews.Score
+import com.hyuuny.ecommerce.storage.db.core.reviews.*
 import com.hyuuny.ecommerce.storage.db.core.users.Role
 import com.hyuuny.ecommerce.storage.db.core.users.UserEntity
 import io.mockk.Runs
@@ -250,5 +247,19 @@ class ReviewServiceTest {
             assertThat(item.content).isEqualTo(reviewEntities[index].content)
             assertThat(item.score).isEqualTo(reviewEntities[index].score)
         }
+    }
+
+    @Test
+    fun `상품에 등록된 리뷰 평점과 총 갯수를 조회할 수 있다`() {
+        val reviewStats = ReviewStats(
+            averageScore = 3.8,
+            reviewCount = 5
+        )
+        every { reviewReader.readReviewStatsByProductId(any()) } returns reviewStats
+
+        val reviewStatsData = reviewService.getReviewStats(1)
+
+        assertThat(reviewStatsData.averageScore).isEqualTo(reviewStats.averageScore)
+        assertThat(reviewStatsData.reviewCount).isEqualTo(reviewStats.reviewCount)
     }
 }
