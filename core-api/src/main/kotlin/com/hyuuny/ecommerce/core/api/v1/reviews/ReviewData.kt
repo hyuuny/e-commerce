@@ -1,9 +1,6 @@
 package com.hyuuny.ecommerce.core.api.v1.reviews
 
-import com.hyuuny.ecommerce.storage.db.core.reviews.ReviewEntity
-import com.hyuuny.ecommerce.storage.db.core.reviews.ReviewPhotoEntity
-import com.hyuuny.ecommerce.storage.db.core.reviews.ReviewType
-import com.hyuuny.ecommerce.storage.db.core.reviews.Score
+import com.hyuuny.ecommerce.storage.db.core.reviews.*
 import com.hyuuny.ecommerce.storage.db.core.users.UserEntity
 import java.time.LocalDateTime
 
@@ -66,5 +63,15 @@ data class ReviewData(
         score = entity.score,
         photos = photos.map { ReviewPhotoData(it) },
         createdAt = entity.createdAt
+    )
+}
+
+data class ReviewStatsData(
+    val averageScore: Double,
+    val reviewCount: Long
+) {
+    constructor(reviewStats: ReviewStats) : this(
+        averageScore = reviewStats.averageScore,
+        reviewCount = reviewStats.reviewCount,
     )
 }

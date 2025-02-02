@@ -32,4 +32,10 @@ class ReviewRestController(
         val page = service.search(request.toCommand(), pageable)
         return ApiResponse.success(SimplePage(page.content.map { ReviewResponseDto(it) }, page))
     }
+
+    @GetMapping("/statistics/{productId}")
+    fun getReviewStats(@PathVariable productId: Long): ApiResponse<ReviewStatsResponseDto> {
+        val reviewStats = service.getReviewStats(productId)
+        return ApiResponse.success(ReviewStatsResponseDto(reviewStats))
+    }
 }

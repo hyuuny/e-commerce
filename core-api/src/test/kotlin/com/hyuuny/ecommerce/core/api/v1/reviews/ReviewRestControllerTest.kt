@@ -433,4 +433,49 @@ class ReviewRestControllerTest(
             log().all()
         }
     }
+
+    @Test
+    fun `상품에 등록된 리뷰 평점과 총 갯수를 조회할 수 있다`() {
+        val productEntity = productRepository.save(
+            ProductEntity(
+                1,
+                ON_SALE,
+                "product-1",
+                "thumbnail.png",
+                ProductsPrice(20000),
+                ProductsDiscountPrice(1000),
+                StockQuantity(100)
+            )
+        )
+        val users = userRepository.saveAll(
+            listOf(
+                UserEntity("newuser1@naver.com", "pwd123!", "가가입", "01012345678", setOf(Role.CUSTOMER)),
+                UserEntity("newuser2@naver.com", "pwd123!", "나가입", "01012345678", setOf(Role.CUSTOMER)),
+                UserEntity("newuser3@naver.com", "pwd123!", "다가입", "01012345678", setOf(Role.CUSTOMER)),
+                UserEntity("newuser4@naver.com", "pwd123!", "라가입", "01012345678", setOf(Role.CUSTOMER)),
+                UserEntity("newuser5@naver.com", "pwd123!", "마가입", "01012345678", setOf(Role.CUSTOMER)),
+            )
+        )
+        val scores = listOf(5, 3, 2, 4, 5)
+        val productId = productEntity.id
+        users.mapIndexed { index, it ->
+            repository.save(
+                ReviewEntity(ReviewType.TEXT, it.id, 1, productId, "content-${it.id}", Score(scores[index])),
+            )
+        }
+
+        val scoreSum = scores.sum()
+        val totalCount = scores.count()
+        Given {
+            contentType(ContentType.JSON)
+        } When {
+            get("/api/v1/reviews/statistics/$productId")
+        } Then {
+            statusCode(HttpStatus.SC_OK)
+            body("result", equalTo(ResultType.SUCCESS.name))
+            body("data.averageScore", equalTo((scoreSum.toDouble() / totalCount).toFloat()))
+            body("data.reviewCount", equalTo(totalCount))
+            log().all()
+        }
+    }
 }

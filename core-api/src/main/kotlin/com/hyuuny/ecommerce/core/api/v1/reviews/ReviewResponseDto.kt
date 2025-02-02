@@ -64,3 +64,13 @@ data class ReviewResponseDto(
         createdAt = data.createdAt,
     )
 }
+
+data class ReviewStatsResponseDto(
+    val averageScore: Double,
+    val reviewCount: Long
+) {
+    constructor(data: ReviewStatsData) : this(
+        averageScore = data.averageScore,
+        reviewCount = data.reviewCount,
+    )
+}
