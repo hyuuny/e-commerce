@@ -5,6 +5,11 @@ open class CoreException(
     val data: Any? = null,
 ) : RuntimeException(errorType.message)
 
+class WebException(
+    errorType: ErrorType,
+    data: Any? = null,
+) : CoreException(errorType, data)
+
 class DuplicateEmailException(
     data: Any? = null
 ) : CoreException(ErrorType.DUPLICATE_EMAIL, data)

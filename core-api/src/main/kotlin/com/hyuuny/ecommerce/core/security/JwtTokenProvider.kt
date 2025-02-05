@@ -42,6 +42,8 @@ class JwtTokenProvider(
 
     fun getUsernameFromToken(token: String): String = getClaimsFromToken(token).subject
 
+    fun getUserIdFromToken(token: String): Int = getClaimsFromToken(token)["userId"] as Int
+
     fun validateToken(token: String): Boolean = try {
         getClaimsFromToken(token)
         true
