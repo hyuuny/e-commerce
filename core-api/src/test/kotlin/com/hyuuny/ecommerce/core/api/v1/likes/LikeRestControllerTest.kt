@@ -2,6 +2,7 @@ package com.hyuuny.ecommerce.core.api.v1.likes
 
 import com.hyuuny.ecommerce.core.BaseIntegrationTest
 import com.hyuuny.ecommerce.core.support.response.ResultType
+import com.hyuuny.ecommerce.storage.db.core.likes.LikeEntity
 import com.hyuuny.ecommerce.storage.db.core.likes.LikeRepository
 import io.restassured.RestAssured
 import io.restassured.http.ContentType
@@ -35,6 +36,25 @@ class LikeRestControllerTest(
     @Test
     fun `사용자가 좋아요한 상품이 아니면, 좋아요 처리된다`() {
         val command = LikeCommand(userId = 1L, productId = 1L)
+
+        Given {
+            contentType(ContentType.JSON)
+            header(HttpHeaders.AUTHORIZATION, generateJwtToken(DEFAULT_USER_EMAIL, DEFAULT_USER_PASSWORD))
+            body(command)
+            log().all()
+        } When {
+            post("/api/v1/likes")
+        } Then {
+            statusCode(HttpStatus.SC_OK)
+            body("result", equalTo(ResultType.SUCCESS.name))
+            log().all()
+        }
+    }
+
+    @Test
+    fun `사용자가 좋아요한 상품이면, 좋아요가 해제된다`() {
+        val likeEntity = repository.save(LikeEntity(userId = 1L, productId = 1L))
+        val command = LikeCommand(userId = likeEntity.userId, productId = likeEntity.productId)
 
         Given {
             contentType(ContentType.JSON)
