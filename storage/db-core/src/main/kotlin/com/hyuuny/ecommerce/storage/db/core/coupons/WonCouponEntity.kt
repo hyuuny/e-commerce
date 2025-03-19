@@ -15,6 +15,9 @@ class WonCouponEntity(
     toDate: LocalDate,
     minimumOrderPrice: MinimumOrderPrice,
     maximumDiscountPrice: MaximumDiscountPrice?,
+    firstComeFirstServed: Boolean,
+    maxIssuanceCount: Int?,
+    currentIssuedCount: Int?,
     val discountPrice: DiscountPrice,
 ) : CouponEntity(
     couponType = couponType,
@@ -24,5 +27,8 @@ class WonCouponEntity(
     fromDate = fromDate,
     toDate = toDate,
     minimumOrderPrice = minimumOrderPrice,
-    maximumDiscountPrice = maximumDiscountPrice
+    firstComeFirstServed = firstComeFirstServed,
+    maxIssuanceCount = maxIssuanceCount,
+    currentIssuedCount = currentIssuedCount,
+    maximumDiscountPrice = maximumDiscountPrice,
 )
