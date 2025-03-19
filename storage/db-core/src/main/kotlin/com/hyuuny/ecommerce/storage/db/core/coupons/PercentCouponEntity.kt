@@ -15,6 +15,9 @@ class PercentCouponEntity(
     toDate: LocalDate,
     minimumOrderPrice: MinimumOrderPrice,
     maximumDiscountPrice: MaximumDiscountPrice?,
+    firstComeFirstServed: Boolean,
+    maxIssuanceCount: Int?,
+    currentIssuedCount: Int?,
     val discountPercent: DiscountPercent,
 ) : CouponEntity(
     couponType = couponType,
@@ -24,5 +27,8 @@ class PercentCouponEntity(
     fromDate = fromDate,
     toDate = toDate,
     minimumOrderPrice = minimumOrderPrice,
+    firstComeFirstServed = firstComeFirstServed,
+    maxIssuanceCount = maxIssuanceCount,
+    currentIssuedCount = currentIssuedCount,
     maximumDiscountPrice = maximumDiscountPrice
 )
