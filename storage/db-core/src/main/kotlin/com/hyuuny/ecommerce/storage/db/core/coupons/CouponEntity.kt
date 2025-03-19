@@ -17,7 +17,7 @@ abstract class CouponEntity(
     val fromDate: LocalDate,
     val toDate: LocalDate,
     val minimumOrderPrice: MinimumOrderPrice,
-    val maximumDiscountPrice: MaximumDiscountPrice,
+    val maximumDiscountPrice: MaximumDiscountPrice?,
     val firstComeFirstServed: Boolean = false,
     val maxIssuanceCount: Int = 0,
     val currentIssuedCount: Int = 0,

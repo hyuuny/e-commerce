@@ -14,7 +14,7 @@ class PercentCouponEntity(
     fromDate: LocalDate,
     toDate: LocalDate,
     minimumOrderPrice: MinimumOrderPrice,
-    maximumDiscountPrice: MaximumDiscountPrice,
+    maximumDiscountPrice: MaximumDiscountPrice?,
     val discountPercent: DiscountPercent,
 ) : CouponEntity(
     couponType = couponType,
