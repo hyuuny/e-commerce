@@ -59,3 +59,15 @@ class InvalidCancelOrderItemException(
 class ReviewNotFoundException(
     data: Any? = null,
 ) : CoreException(ErrorType.REVIEW_NOT_FOUND, data)
+
+class CouponNotFoundException(
+    data: Any? = null,
+) : CoreException(ErrorType.COUPON_NOT_FOUND, data)
+
+class OverCouponMaxIssuanceCountException(
+    data: Any? = null,
+) : CoreException(ErrorType.OVER_COUPON_MAXISSUANCE_COUNT, data)
+
+class FailAcquiredLockException(
+    data: Any? = null,
+) : CoreException(ErrorType.FAIL_ACQUIRE_LOCK, data)

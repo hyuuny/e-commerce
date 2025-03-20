@@ -19,4 +19,7 @@ enum class ErrorType(val status: HttpStatus, val code: ErrorCode, val message: S
     INVALID_CONFIRM_PURCHASE(HttpStatus.BAD_REQUEST, ErrorCode.E400, "invalid confirmPurchase", LogLevel.ERROR),
     INVALID_CANCEL_ORDER_ITEM(HttpStatus.BAD_REQUEST, ErrorCode.E400, "invalid cancelOrderItem", LogLevel.ERROR),
     REVIEW_NOT_FOUND(HttpStatus.NOT_FOUND, ErrorCode.E404, "review notFound", LogLevel.ERROR),
+    COUPON_NOT_FOUND(HttpStatus.NOT_FOUND, ErrorCode.E404, "coupon notFound", LogLevel.ERROR),
+    OVER_COUPON_MAXISSUANCE_COUNT(HttpStatus.NOT_FOUND, ErrorCode.E400, "over couponMaxIssuanceCount", LogLevel.ERROR),
+    FAIL_ACQUIRE_LOCK(HttpStatus.NOT_FOUND, ErrorCode.E400, "fail acquireLock", LogLevel.ERROR),
 }
