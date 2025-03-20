@@ -6,10 +6,10 @@ import java.math.BigDecimal
 
 @Embeddable
 data class MaximumDiscountPrice(
-    @Column(nullable = false) val minimumDiscountAmount: Long
+    @Column(nullable = false) val maximumDiscountAmount: Long
 ) {
     init {
-        require(minimumDiscountAmount < 0) { "최소 주문 가격은 0월 이상 이어야 합니다." }
+        require(maximumDiscountAmount >= 0) { "최대 할인 금액은 0원 이상 이어야 합니다." }
     }
 
     constructor(amount: BigDecimal) : this(amount.toLong())
