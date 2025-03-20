@@ -23,4 +23,13 @@ class MyRestController(
         val page = service.getAllLikedProducts(userId, pageable)
         return ApiResponse.success(SimplePage(page.content.map { MyLikedProductResponseDto(it) }, page))
     }
+
+    @GetMapping("/coupons")
+    fun getUserCoupons(
+        reqeustDto: UserCouponSearchReqeustDto,
+        @PageableDefault(sort = ["id"], direction = Sort.Direction.DESC) pageable: Pageable,
+    ): ApiResponse<SimplePage<UserCouponResponseDto>> {
+        val page = service.getAllUserCoupons(reqeustDto.toCommand(), pageable)
+        return ApiResponse.success(SimplePage(page.content.map { UserCouponResponseDto(it) }, page))
+    }
 }

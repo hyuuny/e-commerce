@@ -12,4 +12,6 @@ class CouponReader(
 ) {
     fun read(id: Long): CouponEntity = couponRepository.findByIdOrNull(id)
         ?: throw CouponNotFoundException("쿠폰을 찾을 수 없습니다. id: $id")
+
+    fun readAllByIds(ids: List<Long>): List<CouponEntity> = couponRepository.findAllById(ids)
 }
