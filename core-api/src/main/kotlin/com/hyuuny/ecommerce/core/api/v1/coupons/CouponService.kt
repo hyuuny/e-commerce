@@ -1,5 +1,6 @@
 package com.hyuuny.ecommerce.core.api.v1.coupons
 
+import com.hyuuny.ecommerce.core.api.v1.users.UserReader
 import com.hyuuny.ecommerce.core.support.error.FailAcquiredLockException
 import com.hyuuny.ecommerce.core.support.error.OverCouponMaxIssuanceCountException
 import com.hyuuny.ecommerce.storage.db.core.coupons.UserCouponEntity
@@ -16,6 +17,8 @@ class CouponService(
     private val redissonClient: RedissonClient,
     private val couponReader: CouponReader,
     private val couponWriter: CouponWriter,
+    private val userReader: UserReader,
+    private val userCouponReader: UserCouponReader,
 ) {
 
     companion object {
@@ -54,6 +57,13 @@ class CouponService(
                 lock.unlock()
             }
         }
+    }
+
+    fun getUserCoupon(userId: Long, couponId: Long): UserCouponData {
+        val user = userReader.read(userId)
+        val coupon = couponReader.read(couponId)
+        val userCoupon = userCouponReader.read(user.id, coupon.id)
+        return UserCouponData(userCoupon, coupon)
     }
 
 }
