@@ -71,3 +71,7 @@ class OverCouponMaxIssuanceCountException(
 class FailAcquiredLockException(
     data: Any? = null,
 ) : CoreException(ErrorType.FAIL_ACQUIRE_LOCK, data)
+
+class UserCouponNotFoundException(
+    data: Any? = null,
+) : CoreException(ErrorType.USER_COUPON_NOT_FOUND, data)
