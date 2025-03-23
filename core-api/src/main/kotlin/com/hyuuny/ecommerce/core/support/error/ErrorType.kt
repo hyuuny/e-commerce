@@ -23,4 +23,5 @@ enum class ErrorType(val status: HttpStatus, val code: ErrorCode, val message: S
     OVER_COUPON_MAXISSUANCE_COUNT(HttpStatus.NOT_FOUND, ErrorCode.E400, "over couponMaxIssuanceCount", LogLevel.ERROR),
     FAIL_ACQUIRE_LOCK(HttpStatus.NOT_FOUND, ErrorCode.E400, "fail acquireLock", LogLevel.ERROR),
     USER_COUPON_NOT_FOUND(HttpStatus.NOT_FOUND, ErrorCode.E404, "userCoupon notFound", LogLevel.ERROR),
+    EXCEL_DOWNLOAD_ERROR(HttpStatus.BAD_REQUEST, ErrorCode.E400, "excel downloadError", LogLevel.ERROR),
 }
