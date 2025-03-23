@@ -1,10 +1,8 @@
 package com.hyuuny.ecommerce.core.api.v1.coupons
 
+import com.hyuuny.ecommerce.core.support.AuthUserId
 import com.hyuuny.ecommerce.core.support.response.ApiResponse
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 
 @RequestMapping("/api/v1/coupons")
 @RestController
@@ -13,7 +11,16 @@ class CouponRestController(
 ) {
     @PostMapping
     fun issueUserCoupon(@RequestBody request: IssueUserCouponReqeustDto): ApiResponse<UserCouponResponseDto> {
-        val userCouponEntity = service.issueCouponToUser(request.toCommand())
-        return ApiResponse.success(UserCouponResponseDto(userCouponEntity))
+        val userCoupon = service.issueCouponToUser(request.toCommand())
+        return ApiResponse.success(UserCouponResponseDto(userCoupon))
+    }
+
+    @GetMapping("/{id}")
+    fun getUserCoupon(
+        @AuthUserId userId: Long,
+        @PathVariable id: Long,
+    ): ApiResponse<UserCouponViewResponseDto> {
+        val userCoupon = service.getUserCoupon(userId, id)
+        return ApiResponse.success(UserCouponViewResponseDto(userCoupon))
     }
 }
