@@ -15,6 +15,8 @@ class OrderReader(
     fun read(id: Long): OrderEntity = repository.findByIdOrNull(id)
         ?: throw OrderNotFoundException("주문을 찾을 수 없습니다. id: $id")
 
+    fun readAll(userId: Long): List<OrderEntity> = repository.findAllByUserId(userId)
+
     fun search(command: OrderSearchCommand, pageable: Pageable): SimplePage<OrderEntity> =
         repository.findAllBySearch(command.toSearch(), pageable)
 }

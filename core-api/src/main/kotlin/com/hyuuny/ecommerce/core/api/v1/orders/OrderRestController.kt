@@ -1,7 +1,9 @@
 package com.hyuuny.ecommerce.core.api.v1.orders
 
 import com.hyuuny.ecommerce.core.support.response.ApiResponse
+import com.hyuuny.ecommerce.core.support.utils.ExcelUtil
 import com.hyuuny.ecommerce.storage.db.core.response.SimplePage
+import jakarta.servlet.http.HttpServletResponse
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
 import org.springframework.data.web.PageableDefault
@@ -43,5 +45,37 @@ class OrderRestController(
     fun cancel(@PathVariable id: Long, @PathVariable orderItemId: Long): ApiResponse<Any> {
         service.cancel(id, orderItemId)
         return ApiResponse.success()
+    }
+
+    @GetMapping("/users/{userId}/excel/download")
+    fun downloadUserOrdersExcel(
+        @PathVariable userId: Long,
+        response: HttpServletResponse
+    ) {
+        val orders = service.getAllOrders(userId)
+        val headers = listOf(
+            "주문 아이디", "주문 코드", "상태", "회원명",
+            "총 상품 가격", "할인 금액", "배송비", "총 결제 금액",
+        )
+        val data = orders.map { order ->
+            listOf(
+                order.id,
+                order.orderCode,
+                order.status.name,
+                order.ordererName,
+                order.totalProductPrice.totalProductAmount,
+                order.totalDiscountPrice.totalDiscountAmount,
+                order.shippingFee,
+                order.totalPrice.totalAmount
+            )
+        }
+
+        ExcelUtil.downloadExcel(
+            response,
+            fileName = "user_${userId}_orders",
+            sheetName = "주문 내역",
+            headers = headers,
+            data = data
+        )
     }
 }

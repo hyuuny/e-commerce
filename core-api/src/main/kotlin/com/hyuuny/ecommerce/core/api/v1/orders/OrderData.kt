@@ -100,3 +100,27 @@ data class OrderData(
         items = items.map { OrderItemData(it) },
     )
 }
+
+data class OrderSheetData(
+    val id: Long,
+    val orderCode: String,
+    val status: OrderStatus,
+    val ordererName: String,
+    val totalProductPrice: TotalProductPrice,
+    val totalDiscountPrice: TotalDiscountPrice,
+    val shippingFee: Long,
+    val totalPrice: TotalPrice,
+    val createdAt: LocalDateTime,
+) {
+    constructor(entity: OrderEntity) : this(
+        id = entity.id,
+        orderCode = entity.orderCode,
+        status = entity.status,
+        ordererName = entity.orderer.name,
+        totalProductPrice = entity.totalProductPrice,
+        totalDiscountPrice = entity.totalDiscountPrice,
+        shippingFee = entity.shippingFee,
+        totalPrice = entity.totalPrice,
+        createdAt = entity.createdAt,
+    )
+}

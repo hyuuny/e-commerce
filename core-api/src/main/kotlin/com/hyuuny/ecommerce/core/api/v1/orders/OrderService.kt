@@ -56,4 +56,9 @@ class OrderService(
         orderItemWriter.cancel(orderItem)
         eventPublisher.publishEvent(OrderItemCancelEvent(order.id))
     }
+
+    fun getAllOrders(userId: Long): List<OrderSheetData> {
+        val orders = orderReader.readAll(userId)
+        return orders.map { OrderSheetData(it) }
+    }
 }

@@ -75,3 +75,7 @@ class FailAcquiredLockException(
 class UserCouponNotFoundException(
     data: Any? = null,
 ) : CoreException(ErrorType.USER_COUPON_NOT_FOUND, data)
+
+class ExcelDownLoadException(
+    data: Any? = null,
+) : CoreException(ErrorType.EXCEL_DOWNLOAD_ERROR, data)
