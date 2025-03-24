@@ -4,6 +4,7 @@ plugins {
 rootProject.name = "e-commerce"
 include(
     "core-api",
+    "core-batch",
     "core-redis",
     "storage:db-core",
     "support:logging",
