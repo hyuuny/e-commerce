@@ -14,6 +14,9 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("com.github.gavlyukovskiy:p6spy-spring-boot-starter:1.9.0")
+    implementation("org.springframework.boot:spring-boot-starter-batch")
+    implementation("org.springframework.batch:spring-batch-core")
+    implementation("org.springframework.batch:spring-batch-infrastructure")
     implementation("io.jsonwebtoken:jjwt-api:0.12.3")
     runtimeOnly("io.jsonwebtoken:jjwt-impl:0.12.3")
     runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.12.3")
@@ -22,4 +25,5 @@ dependencies {
 
     testImplementation("io.rest-assured:kotlin-extensions:5.2.0")
     testImplementation("org.testcontainers:testcontainers:1.17.2")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1")
 }
