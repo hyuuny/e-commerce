@@ -2,7 +2,7 @@
 
 ---
 
-> 이 프로젝트는 Kotlin, JPA, QueryDSL, Spring Boot, Spring Security, Redis, MySQL을 이용하여 개발된 전자상거래 서비스입니다.
+> 이 프로젝트는 Kotlin, JPA, QueryDSL, Spring Boot, Spring Security, Spring Batch, Redis, MySQL을 이용하여 개발된 전자상거래 서비스입니다.
 
 
 <br>
@@ -14,7 +14,7 @@
 
 언어: `Kotlin`
 
-백엔드 프레임워크: `Spring Boot`, `Spring Security`, `Spring Data JPA`
+백엔드 프레임워크: `Spring Boot`, `Spring Security`, `Spring Data JPA`, `Spring Batch`
 
 데이터베이스: `MySQL`, `H2`
 
@@ -156,6 +156,7 @@
 - 쿠폰 발급
     - [x] 사용자는 선착순 쿠폰을 발급 받을 수 있다.
     - [x] 선착순 쿠폰의 최대 발급 수를 초과하면 쿠폰을 발급받을 수 없다.
+    - [x] 쿠폰 코드를 이용하여 모든 사용자에게 쿠폰을 발급할 수 있다.
 
 - 쿠폰 상세 조회
     - [x] 사용자는 발급 받은 쿠폰을 상세조회 할 수 있다.
