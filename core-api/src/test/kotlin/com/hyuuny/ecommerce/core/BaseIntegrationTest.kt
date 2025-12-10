@@ -1,6 +1,7 @@
 package com.hyuuny.ecommerce.core
 
 import com.hyuuny.ecommerce.core.api.v1.auth.AuthRequestDto
+import com.hyuuny.ecommerce.core.api.v1.config.RedisContainerConfig
 import com.hyuuny.ecommerce.storage.db.core.users.UserRepository
 import io.restassured.http.ContentType
 import io.restassured.module.kotlin.extensions.Given
@@ -10,7 +11,7 @@ import org.apache.http.HttpStatus
 import org.springframework.beans.factory.annotation.Autowired
 
 @TestEnvironment
-abstract class BaseIntegrationTest {
+abstract class BaseIntegrationTest : RedisContainerConfig() {
 
     @Autowired
     lateinit var userRepository: UserRepository

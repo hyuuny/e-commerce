@@ -1,7 +1,7 @@
 package com.hyuuny.ecommerce.core.api.v1.brands
 
 import com.hyuuny.ecommerce.core.BaseIntegrationTest
-import com.hyuuny.ecommerce.core.TestContainer
+import com.hyuuny.ecommerce.core.TestEnvironment
 import com.hyuuny.ecommerce.core.support.error.ErrorCode
 import com.hyuuny.ecommerce.core.support.error.ErrorType
 import com.hyuuny.ecommerce.core.support.response.ResultType
@@ -20,7 +20,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.boot.test.web.server.LocalServerPort
 import org.springframework.data.domain.PageRequest
 
-@TestContainer
+@TestEnvironment
 class BrandRestControllerTest(
     @LocalServerPort val port: Int,
     private val repository: BrandRepository,

@@ -1,7 +1,7 @@
 package com.hyuuny.ecommerce.core.api.v1.reviews
 
 import com.hyuuny.ecommerce.core.BaseIntegrationTest
-import com.hyuuny.ecommerce.core.TestContainer
+import com.hyuuny.ecommerce.core.TestEnvironment
 import com.hyuuny.ecommerce.core.support.error.ErrorCode
 import com.hyuuny.ecommerce.core.support.error.ErrorType
 import com.hyuuny.ecommerce.core.support.response.ResultType
@@ -33,7 +33,7 @@ import kotlin.random.Random
 import com.hyuuny.ecommerce.storage.db.core.catalog.products.DiscountPrice as ProductsDiscountPrice
 import com.hyuuny.ecommerce.storage.db.core.catalog.products.Price as ProductsPrice
 
-@TestContainer
+@TestEnvironment
 class ReviewRestControllerTest(
     @LocalServerPort val port: Int,
     private val service: ReviewService,

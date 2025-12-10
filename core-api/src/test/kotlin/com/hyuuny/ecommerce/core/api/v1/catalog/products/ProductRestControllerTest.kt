@@ -1,7 +1,7 @@
 package com.hyuuny.ecommerce.core.api.v1.catalog.products
 
 import com.hyuuny.ecommerce.core.BaseIntegrationTest
-import com.hyuuny.ecommerce.core.TestContainer
+import com.hyuuny.ecommerce.core.TestEnvironment
 import com.hyuuny.ecommerce.core.support.error.ErrorCode
 import com.hyuuny.ecommerce.core.support.error.ErrorType
 import com.hyuuny.ecommerce.core.support.response.ResultType
@@ -21,7 +21,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.boot.test.web.server.LocalServerPort
 
-@TestContainer
+@TestEnvironment
 class ProductRestControllerTest(
     @LocalServerPort val port: Int,
     private val repository: ProductRepository,

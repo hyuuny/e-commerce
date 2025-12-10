@@ -24,6 +24,9 @@ dependencies {
     implementation("org.apache.poi:poi-ooxml:5.2.3")
 
     testImplementation("io.rest-assured:kotlin-extensions:5.2.0")
-    testImplementation("org.testcontainers:testcontainers:1.17.2")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1")
+
+    // TEST CONTAINER
+    testImplementation("org.testcontainers:testcontainers")
+    testImplementation("org.testcontainers:junit-jupiter")
 }

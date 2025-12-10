@@ -1,7 +1,7 @@
 package com.hyuuny.ecommerce.core.api.v1.coupons
 
 import com.hyuuny.ecommerce.core.BaseIntegrationTest
-import com.hyuuny.ecommerce.core.TestContainer
+import com.hyuuny.ecommerce.core.TestEnvironment
 import com.hyuuny.ecommerce.core.support.error.ErrorCode
 import com.hyuuny.ecommerce.core.support.error.ErrorType
 import com.hyuuny.ecommerce.core.support.response.ResultType
@@ -27,7 +27,7 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.Future
 
-@TestContainer
+@TestEnvironment
 class CouponRestControllerTest(
     @LocalServerPort val port: Int,
     private val couponRepository: CouponRepository,
